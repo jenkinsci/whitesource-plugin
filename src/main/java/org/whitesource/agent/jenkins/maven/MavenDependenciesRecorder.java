@@ -12,6 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * This file contains modifications to the original work made by White Source Ltd. 2012. 
  */
 
 package org.whitesource.agent.jenkins.maven;
@@ -27,6 +29,8 @@ import hudson.maven.MojoInfo;
 import hudson.model.BuildListener;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
+import org.whitesource.agent.api.model.DependencyInfo;
+import org.whitesource.agent.jenkins.WssUtils;
 
 
 import java.io.IOException;
@@ -36,19 +40,28 @@ import java.util.Set;
 /**
  * Records dependencies used during the build.
  *
- * @author Yossi Shaul
+ * @author Yossi Shaul (Original)
+ * @author Edo.Shor (White Source)
  */
 public class MavenDependenciesRecorder extends MavenReporter {
 
-    /**
+    /* --- Static members --- */
+	
+	private static final long serialVersionUID = 9107918530513865446L;
+	
+	/* --- Members --- */
+	
+	/**
      * All dependencies this module used, including transitive ones.
      */
-    private transient Set<MavenDependency> dependencies;
+    private transient Set<DependencyInfo> dependencies;
+    
+    /* --- Concrete implementation methods --- */
 
     @Override
     public boolean preBuild(MavenBuildProxy build, MavenProject pom, BuildListener listener) {
         listener.getLogger().println("[Jenkins] Collecting dependencies info");
-        dependencies = new HashSet<MavenDependency>();
+        dependencies = new HashSet<DependencyInfo>();
         return true;
     }
 
@@ -58,8 +71,6 @@ public class MavenDependenciesRecorder extends MavenReporter {
     @Override
     public boolean postExecute(MavenBuildProxy build, MavenProject pom, MojoInfo mojo, BuildListener listener,
             Throwable error) {
-        //listener.getLogger().println("[MavenDependenciesRecorder] mojo: " + mojo.getClass() + ":" + mojo.getGoal());
-        //listener.getLogger().println("[MavenDependenciesRecorder] dependencies: " + pom.getArtifacts());
         recordMavenDependencies(pom.getArtifacts());
         return true;
     }
@@ -71,41 +82,59 @@ public class MavenDependenciesRecorder extends MavenReporter {
     public boolean postBuild(MavenBuildProxy build, MavenProject pom, BuildListener listener)
             throws InterruptedException, IOException {
         build.executeAsync(new BuildCallable<Void, IOException>() {
-            // record is transient, so needs to make a copy first
-            private final Set<MavenDependency> d = dependencies;
+            
+        	/* --- Static members --- */
+			private static final long serialVersionUID = -3923086337535368565L;
+			
+			/* --- Members --- */
+			
+			// record is transient, so needs to make a copy first
+            private final Set<DependencyInfo> d = dependencies;
+            
+            /* --- Interface implementation methods --- */
 
             public Void call(MavenBuild build) throws IOException, InterruptedException {
                 // add the action
                 //TODO: [by yl] These actions are persisted into the build.xml of each build run - we need another
                 //context to store these actions
-                build.getActions().add(new MavenDependenciesRecord(build, d));
+                build.getActions().add(new MavenDependenciesRecord(d));
                 return null;
             }
         });
         return true;
     }
+    
+    /* --- Private methods --- */
 
     private void recordMavenDependencies(Set<Artifact> artifacts) {
         if (artifacts != null) {
             for (Artifact dependency : artifacts) {
                 if (dependency.isResolved() && dependency.getFile() != null) {
-                    MavenDependency mavenDependency = new MavenDependency();
-                    mavenDependency.id = dependency.getId();
-                    mavenDependency.groupId = dependency.getGroupId();
-                    mavenDependency.artifactId = dependency.getArtifactId();
-                    mavenDependency.version = dependency.getVersion();
-                    mavenDependency.classifier = dependency.getClassifier();
-                    mavenDependency.scope = dependency.getScope();
-                    mavenDependency.fileName = dependency.getFile().getName();
-                    mavenDependency.type = dependency.getType();
-                    dependencies.add(mavenDependency);
+                	DependencyInfo info = new DependencyInfo();
+                	info.setGroupId(dependency.getGroupId());
+					info.setArtifactId(dependency.getArtifactId());
+					info.setVersion(dependency.getVersion());
+					info.setType(dependency.getType());
+					info.setClassifier(dependency.getClassifier());
+					info.setScope(dependency.getScope());
+					info.setSystemPath(dependency.getFile().getName());
+					
+					if (dependency.getFile().exists()) {
+						String sha1 = WssUtils.calculateSha1(dependency.getFile(), null);
+						info.setSha1(sha1);
+					}
+                	
+                    dependencies.add(info);
                 }
             }
         }
     }
+    
+    /* --- Nested classes --- */
 
     @Extension
     public static final class DescriptorImpl extends MavenReporterDescriptor {
+    	
         @Override
         public String getDisplayName() {
             return "Record Maven Dependencies";
@@ -116,6 +145,5 @@ public class MavenDependenciesRecorder extends MavenReporter {
             return new MavenDependenciesRecorder();
         }
     }
-
-    private static final long serialVersionUID = 1L;
+    
 }

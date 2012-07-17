@@ -11,7 +11,10 @@
     tags they use. Views are always organized according to its owner class,
     so it should be straightforward to find them.
   -->
-  <f:section title="White Source Publisher">
-    
+  <f:section title="White Source">
+    <f:entry title="Organization token" field="orgToken"
+    		help="/plugin/whitesource/help/help-organizationToken.html">
+		<f:textbox/>
+	</f:entry>
   </f:section>
 </j:jelly>

@@ -1,4 +1,4 @@
-jenkins-plugin
-==============
+jenkins-whitesource-plugin
+==========================
 
-External update agent for the Jenkins CI tool
+White Source external update agent for Jenkins CI.

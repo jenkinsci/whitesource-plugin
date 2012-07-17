@@ -1,6 +1,19 @@
-/**
- * 
+/*
+ * Copyright (C) 2010 White Source Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.whitesource.agent.jenkins;
 
 import hudson.Extension;
@@ -10,11 +23,10 @@ import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.maven.reporters.MavenArtifactRecord;
 import hudson.model.BuildListener;
+import hudson.model.FreeStyleBuild;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Cause;
-import hudson.model.Job;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -22,288 +34,277 @@ import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.servlet.ServletException;
+import java.util.Map.Entry;
 
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-import org.whitesource.agent.api.dispatch.PropertiesRequest;
-import org.whitesource.agent.api.dispatch.PropertiesResult;
-import org.whitesource.agent.api.dispatch.RequestFactory;
-import org.whitesource.agent.api.dispatch.UpdateInventoryRequest;
 import org.whitesource.agent.api.dispatch.UpdateInventoryResult;
 import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.agent.api.model.Coordinates;
 import org.whitesource.agent.api.model.DependencyInfo;
 import org.whitesource.agent.jenkins.maven.MavenDependenciesRecord;
-import org.whitesource.agent.jenkins.maven.MavenDependency;
-import org.whitesource.agent.jenkins.plugin.Constants;
-import org.whitesource.api.client.WssServiceClient;
-import org.whitesource.api.client.WssServiceClientImpl;
 import org.whitesource.api.client.WssServiceException;
-
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 
 /**
  * @author ramakrishna
- * 
+ * @author Edo.Shor
  */
 @SuppressWarnings("unchecked")
 public class WhiteSourcePublisher extends Recorder {
 
-	private volatile WhiteSourceConfiguration config;
+	/* --- Members --- */
+	
+	private final String orgToken;
+	
+	private final String projectToken;
+	
+	private final String libIncludes;
+	
+	private final String libExcludes;
+	
+	/* --- Constructors --- */
 
-	public WhiteSourcePublisher(WhiteSourceConfiguration config) {
-		this.config = config;
+	/**
+	 * Constructor
+	 * 
+	 * @param orgToken
+	 * @param libIncludes
+	 * @param libExcludes
+	 */
+	@DataBoundConstructor
+	public WhiteSourcePublisher(String orgToken, String projectToken, String libIncludes, String libExcludes) {
+		this.orgToken = orgToken;
+		this.projectToken = projectToken;
+		this.libIncludes = libIncludes;
+		this.libExcludes = libExcludes;
 	}
 
-	public WhiteSourceConfiguration getConfig() {
-		return config;
-	}
-
-	public BuildStepMonitor getRequiredMonitorService() {
-		return BuildStepMonitor.NONE;
-	}
-
+	/* --- Interface implementation methods --- */
+	
+	@SuppressWarnings("rawtypes")
 	@Override
-	public boolean perform(AbstractBuild build, Launcher launcher,
-			BuildListener listener) throws InterruptedException, IOException {
-		String buildLog = build.getLog();
-		listener.getLogger().println("In White Source Publisher ...");
-		Result pr = build.getResult();
-
-		if (isBuildFromM2ReleasePlugin(build)) {
-			listener.getLogger()
-					.append("M2 Release build, not uploading artifacts to Artifactory. ");
-			// return true;
+	public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) 
+			throws InterruptedException, IOException {
+		listener.getLogger().println("Starting White Source publisher");
+		
+		if (build.getResult().isWorseThan(Result.SUCCESS)) {
+			listener.getLogger().println("Build failed. Skipping  update.");
+            return true;
+        }
+		
+		if (WssUtils.isFreeStyleMaven(build.getProject())) {
+			listener.getLogger().println("Free style maven jobs are not supported in this version. See plugin documentation.");
+            return true;
 		}
 
-		if (!(build instanceof MavenModuleSetBuild)) {
-			listener.getLogger()
-					.format("Non maven build type: %s", build.getClass())
-					.println();
-		}
-
-		listener.getLogger().println(
-				"---------------Maven Modules-------------");
+		// prepare all OSS information to send
+		listener.getLogger().println("\nPreparing OSS information");
 		Collection<AgentProjectInfo> projectInfos = new ArrayList<AgentProjectInfo>();
-
-		MavenModuleSetBuild mavenBuild = (MavenModuleSetBuild) build;
-
-		mavenBuild.getModuleLastBuilds();
-		Map<MavenModule, MavenBuild> moduleBuilds = mavenBuild
-				.getModuleLastBuilds();
-		Set<MavenModule> mavenModuleCollection = moduleBuilds.keySet();
-		Iterator<MavenModule> mavenModuleIterator = mavenModuleCollection
-				.iterator();
-		while (mavenModuleIterator.hasNext()) {
-			AgentProjectInfo projectInfo = new AgentProjectInfo();
-			MavenModule mavenModule = mavenModuleIterator.next();
-			listener.getLogger().println(
-					"Maven Module --> " + mavenModule.getName());
-			listener.getLogger().println(
-					"-------------------------------------------");
-			MavenBuild mBuild = moduleBuilds.get(mavenModule);
-
-			listener.getLogger().println("Co-ordiantes");
-			listener.getLogger().println(
-					"-------------------------------------------");
-			MavenArtifactRecord action = mBuild
-					.getAction(MavenArtifactRecord.class);
-			if (action != null) {
-				listener.getLogger().println(action.pomArtifact.artifactId);
-				listener.getLogger().println(action.pomArtifact.groupId);
-				listener.getLogger().println(action.pomArtifact.version);
-
-				projectInfo.setCoordinates(new Coordinates(
-						action.pomArtifact.groupId,
-						action.pomArtifact.artifactId,
-						action.pomArtifact.version));
-
-			}
-
-			listener.getLogger().println("Dependencies");
-			listener.getLogger().println(
-					"-------------------------------------------");
-			Collection<DependencyInfo> dependencyInfos = projectInfo
-					.getDependencies();
-			MavenDependenciesRecord action3 = mBuild
-					.getAction(MavenDependenciesRecord.class);
-			Set<MavenDependency> mavenDependencies = action3.getDependencies();
-			Iterator<MavenDependency> mavenDependencyIterator = mavenDependencies
-					.iterator();
-			while (mavenDependencyIterator.hasNext()) {
-				MavenDependency mavenDependency = mavenDependencyIterator
-						.next();
-				listener.getLogger().println(
-						mavenDependency.groupId + "--"
-								+ mavenDependency.artifactId + "--"
-								+ mavenDependency.version);
-
-				DependencyInfo info = new DependencyInfo();
-
-				// dependency data
-				info.setGroupId(mavenDependency.groupId);
-				info.setArtifactId(mavenDependency.artifactId);
-				info.setVersion(mavenDependency.version);
-				info.setScope(mavenDependency.scope);
-				info.setClassifier(mavenDependency.classifier);
-				// info.setOptional(mavenDependency.isOptional());
-				info.setType(mavenDependency.type);
-				// info.setSystemPath(mavenDependency.getSystemPath());
-				dependencyInfos.add(info);
-			}
-		}
-
-		WssServiceClient client = null;
-		if (StringUtils.isEmpty(config.getWssUrl())) {
-			client = new WssServiceClientImpl();
+		if ((build instanceof MavenModuleSetBuild)) {
+			projectInfos = doMaven((MavenModuleSetBuild) build, listener);
+		} else if ((build instanceof FreeStyleBuild)) {
+			AgentProjectInfo projectInfo = doFreeStyle((FreeStyleBuild) build, listener);
+			projectInfo.setProjectToken(projectToken);
+			projectInfos.add(projectInfo);
 		} else {
-			client = new WssServiceClientImpl(config.getWssUrl());
+			listener.getLogger().println("Unrecognized build type " + build.getClass().getName());
 		}
-		RequestFactory requestFactory = new RequestFactory("jenkins", "1.0");
 
-		PropertiesRequest request = requestFactory.newPropertiesRequest(config
-				.getOrgToken());
-		request.setTimeStamp(new Date().getTime());
-		PropertiesResult result = null;
-
+		// update White Source
+		listener.getLogger().println("\nSending OSS information to White Source service");
+		WssService service = new WssService();
 		try {
-			result = client.getProperties(request);
-			listener.getLogger().println(
-					result != null ? result.getProperties().toString()
-							: "Empty Result");
+			UpdateInventoryResult result = service.update(orgToken, projectInfos);
+			logUpdateResult(result, listener);
+			listener.getLogger().println("Update successful");
+			return true;
 		} catch (WssServiceException e) {
-			listener.getLogger().println(
-					"Error getting properties " + e.getMessage());
+			listener.getLogger().println("Update fail: " + e.getMessage());
+		} finally {
+			service.shutdown();
 		}
-
-		// create update request
-		UpdateInventoryRequest investoryRequest = requestFactory
-				.newUpdateInventoryRequest(config.getOrgToken(), projectInfos);
-
-		UpdateInventoryResult inventoryResult = null;
-		// send request
-		try {
-			inventoryResult = client.updateInventory(investoryRequest);
-			logResult(inventoryResult, listener.getLogger());
-		} catch (WssServiceException e) {
-			e.printStackTrace();
-		}
-
+		
+		// failed
+        build.setResult(Result.FAILURE);
+		
 		return true;
 	}
 
-	/**
-	 * Logs the operation results.
-	 * 
-	 * @param result
-	 */
-	private void logResult(UpdateInventoryResult result, PrintStream logger) {
-		logger.println("");
-		logger.println(Constants.INFO_DOMAIN + result.getOrganization());
+	/* --- Public methods --- */
+	
+	public BuildStepMonitor getRequiredMonitorService() {
+		return BuildStepMonitor.NONE;
+	}
+	
+	/* --- Private methods --- */
+	
+	private  Collection<AgentProjectInfo> doMaven(MavenModuleSetBuild build, BuildListener listener) {
+		Collection<AgentProjectInfo> projectInfos = new ArrayList<AgentProjectInfo>();
+		
+		for (Entry<MavenModule, MavenBuild> entry : build.getModuleLastBuilds().entrySet()) {
+			AgentProjectInfo projectInfo = new AgentProjectInfo();
+			MavenBuild moduleBuild = entry.getValue();
+			
+			// module information
+			MavenArtifactRecord action = moduleBuild.getAction(MavenArtifactRecord.class);
+			if (action != null) {
+				listener.getLogger().println(action.pomArtifact.canonicalName);
+				projectInfo.setCoordinates(new Coordinates(action.pomArtifact.groupId, 
+						action.pomArtifact.artifactId, action.pomArtifact.version));
+			}
 
-		// log updated projects
-		Collection<String> updatedProjects = result.getUpdatedProjects();
-		if (updatedProjects.isEmpty()) {
-			logger.println(Constants.INFO_NO_PROJECTS_UPDATED);
+			// dependencies
+			Collection<DependencyInfo> dependencyInfos = projectInfo.getDependencies();
+			MavenDependenciesRecord dependenciesAction = moduleBuild.getAction(MavenDependenciesRecord.class);
+			if (dependenciesAction == null) {
+				listener.getLogger().println("No dependncies found !");
+			} else {
+				dependencyInfos.addAll(dependenciesAction.getDependencies());
+				listener.getLogger().println("Found " + dependenciesAction.getDependencies().size() + " dependencies (transitive included)");
+			}
+			
+			projectInfos.add(projectInfo);
+		}
+		
+		return projectInfos;
+	}
+	
+	private AgentProjectInfo doFreeStyle(FreeStyleBuild freeStyleBuild, BuildListener listener)
+			throws IOException, InterruptedException {
+		AgentProjectInfo projectInfo = null;
+		
+		if (StringUtils.isBlank(libIncludes)) {
+			listener.getLogger().println("No include pattern defined. Skipping update.");
 		} else {
-			logger.println(Constants.INFO_PROJECTS_UPDATED);
-			logger.println("");
-			for (String projectName : updatedProjects) {
-				logger.println(projectName);
-			}
-			logger.println("");
-			logger.println(Constants.INFO_EMAIL_MESSAGE);
-			logger.println("");
+			LibFolderScanner libScanner = new LibFolderScanner(libIncludes, libExcludes, listener.getLogger());
+			Collection<DependencyInfo> folderDependencies = freeStyleBuild.getWorkspace().act(libScanner);
+			projectInfo = new AgentProjectInfo();
+			projectInfo.getDependencies().addAll(folderDependencies);
 		}
-
-		// log created projects
-		Collection<String> createdProjects = result.getCreatedProjects();
-		if (!createdProjects.isEmpty()) {
-			logger.println(Constants.INFO_PROJECTS_CREATED);
-			logger.println("");
-			for (String projectName : createdProjects) {
-				logger.println(projectName);
-			}
-		}
+		
+		return projectInfo;
+	}
+	
+	private void logUpdateResult(UpdateInventoryResult result, BuildListener listener) {
+		listener.getLogger().println("White Source update results: ");
+		listener.getLogger().println("White Source organization: " + result.getOrganization());
+		listener.getLogger().println(result.getCreatedProjects().size() + " Newly created projects:");
+		StringUtils.join(result.getCreatedProjects(), ",");
+		listener.getLogger().println(result.getUpdatedProjects().size() + " existing projects were updated:");
+		StringUtils.join(result.getUpdatedProjects(), ",");
 	}
 
-	private boolean isBuildFromM2ReleasePlugin(AbstractBuild<?, ?> build) {
-		List<Cause> causes = build.getCauses();
-		for (Cause cause : causes) {
-			System.out.println(cause.getClass().getName());
-		}
-		return !causes.isEmpty()
-				&& Iterables.any(causes, new Predicate<Cause>() {
-					public boolean apply(Cause input) {
-
-						return "org.jvnet.hudson.plugins.m2release.ReleaseCause"
-								.equals(input.getClass().getName());
-					}
-				});
-	}
+	/* --- Nested classes --- */
 
 	@Extension
-	public static final class DescriptorImpl extends
-			BuildStepDescriptor<Publisher> {
+	public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
+
+		/* --- Members--- */
+		
+		private String orgToken;
+		
+		/* --- Constructors--- */
+
+		/**
+		 * Default constructor
+		 */
 		public DescriptorImpl() {
 			super(WhiteSourcePublisher.class);
 			load();
 		}
 
+		/* --- Overridden methods --- */
+
+		@Override
 		public boolean isApplicable(Class<? extends AbstractProject> jobType) {
 			return true;
 		}
 
-		public FormValidation doCheckWssUrl(
-				@AncestorInPath final AbstractProject<?, ?> project,
-				@QueryParameter final String wssUrl) throws IOException,
-				ServletException {
-			project.checkPermission(Job.CONFIGURE);
-			return WhiteSourceUtils.validateWssUrl(wssUrl);
-		}
-
-		public FormValidation doCheckOrgToken(
-				@AncestorInPath final AbstractProject<?, ?> project,
-				@QueryParameter final String orgToken) throws IOException,
-				ServletException {
-			project.checkPermission(Job.CONFIGURE);
-			return WhiteSourceUtils.validateOrgToken(orgToken);
-		}
-
 		@Override
 		public String getDisplayName() {
-			return "White Source Service";
+			return "White Source Publisher";
 		}
 
 		@Override
 		public String getHelpFile() {
-			return "/plugin/WhiteSourceAgent/help/main.html";
+			return "/plugin/whitesource/help/help.html";
 		}
 
 		@Override
-		public WhiteSourcePublisher newInstance(StaplerRequest req,
-				JSONObject formData) throws FormException {
-
-			WhiteSourceConfiguration config = req.bindParameters(
-					WhiteSourceConfiguration.class,
-					"WhiteSourceAgent.whitesourceConfiguration.");
-			return new WhiteSourcePublisher(config);
+		public WhiteSourcePublisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+			String projectToken = formData.optString("projectToken");
+			String libIncludes = formData.optString("libIncludes");
+			String libExcludes = formData.optString("libExcludes");
+			
+			JSONObject overridingTokenJSON = formData.getJSONObject("overridingOrgToken");
+			if (!overridingTokenJSON.isNullObject()) {
+				String overridingOrgToken = overridingTokenJSON.getString("overridingOrgToken");
+				orgToken = overridingOrgToken;
+			}
+			
+			return new WhiteSourcePublisher(orgToken, projectToken, libIncludes, libExcludes);
 		}
+		
+		@Override
+		public boolean configure(StaplerRequest req, JSONObject json)
+				throws FormException {
+			orgToken = json.getString("orgToken");
+			save();
+			return super.configure(req, json);
+		}
+
+		/* --- Public methods --- */
+
+		public FormValidation doCheckOrgToken(@QueryParameter String orgToken) {
+			return FormValidation.validateRequired(orgToken);
+		}
+
+		public FormValidation doCheckOverridingOrgToken(@QueryParameter String overridingOrgToken) {
+			return FormValidation.validateRequired(overridingOrgToken);
+		}
+
+		public FormValidation doCheckLibIncludes(@QueryParameter String libIncludes) {
+			return FormValidation.validateRequired(libIncludes);
+		}
+		
+		public FormValidation doCheckProjectToken(@QueryParameter String projectToken) {
+			return FormValidation.validateRequired(projectToken);
+		}
+
+		/* --- Getters / Setters --- */
+		
+		public String getOrgToken() {
+			return orgToken;
+		}
+
+		public void setOrgToken(String orgToken) {
+			this.orgToken = orgToken;
+		}
+		
+	}
+	
+	/* --- Getters --- */
+
+	public String getOrgToken() {
+		return orgToken;
+	}
+
+	public String getProjectToken() {
+		return projectToken;
+	}
+
+	public String getLibIncludes() {
+		return libIncludes;
+	}
+
+	public String getLibExcludes() {
+		return libExcludes;
 	}
 
 }
