@@ -16,7 +16,7 @@
  * This file contains modifications to the original work made by White Source Ltd. 2012.
  */
 
-package org.whitesource.agent.jenkins.maven;
+package org.whitesource.jenkins.extractor.maven;
 
 import hudson.model.Action;
 

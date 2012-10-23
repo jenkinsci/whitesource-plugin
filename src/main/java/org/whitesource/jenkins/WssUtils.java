@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.whitesource.agent.jenkins;
+package org.whitesource.jenkins;
 
 import hudson.model.AbstractProject;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Builder;
 import hudson.tasks.Maven;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import org.sonatype.aether.util.ChecksumUtils;
+import java.util.regex.Pattern;
 
 /**
  * Utility methods used throughout the plugin.
@@ -36,33 +34,14 @@ import org.sonatype.aether.util.ChecksumUtils;
  * @author Edo.Shor
  */
 public final class WssUtils {
+
+    /* --- Static members --- */
+
+        private static final Pattern PARAM_LIST_SPLIT_PATTERN = Pattern.compile(",|$", Pattern.MULTILINE);
+        private static final Pattern KEY_VALUE_SPLIT_PATTERN = Pattern.compile("=");
+
 	
 	/* --- Static methods --- */
-	
-	/**
-	 * Calculates SHA-1 for the given file.
-	 * 
-	 * @param file Physical file to calculate SHA-1 for.
-	 * @param logger Logger to use for errors. May be null.
-	 * 
-	 * @return SHA-1 code for the given file.
-	 */
-	public static String calculateSha1(File file, PrintStream logger) {
-		String sha1 = Constants.ERROR_SHA1;
-		
-		if (file != null) {
-			try {
-				Map<String, Object> calcMap = ChecksumUtils.calc(file, Arrays.asList(Constants.SHA1));
-				sha1 = (String) calcMap.get(Constants.SHA1);
-			} catch (IOException e) {
-				if (logger != null) {
-					logger.println(Constants.ERROR_SHA1 + " " + e.getMessage());
-				}
-			}
-		}
-		
-		return sha1;
-	}
 	
 	/**
 	 * <b>Important: </b> do not remove since it is used in jelly config files to determine job type.
@@ -94,6 +73,40 @@ public final class WssUtils {
 		
 		return freeStyle;
 	}
+
+    public static List<String> splitParameters(String paramList) {
+            List<String> params = new ArrayList<String>();
+
+            if (paramList != null) {
+                String[] split = PARAM_LIST_SPLIT_PATTERN.split(paramList);
+                if (split != null) {
+                    for (String param : split) {
+                        if (!(param == null || param.trim().length() == 0)) {
+                            params.add(param.trim());
+                        }
+                    }
+                }
+            }
+
+            return params;
+        }
+
+        public static Map<String, String> splitParametersMap(String paramList) {
+            Map<String, String> params = new HashMap<String, String>();
+
+            List<String> kvps = splitParameters(paramList);
+            if (kvps != null) {
+                for (String kvp : kvps) {
+                    String[] split = KEY_VALUE_SPLIT_PATTERN.split(kvp);
+                    if (split.length == 2) {
+                        params.put(split[0], split[1]);
+                    }
+                }
+            }
+
+            return params;
+        }
+
 
 	/* --- Constructors --- */
 	

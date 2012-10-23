@@ -1,0 +1,16 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:section title="White Source">
+    <f:entry title="API token" field="apiToken"
+    		help="/plugin/whitesource/help/help-apiToken.html">
+		<f:textbox/>
+	</f:entry>
+	<f:entry title="Service url" field="serviceUrl"
+            help="/plugin/whitesource/help/help-serviceUrl.html">
+        <f:textbox/>
+    </f:entry>
+    <f:entry title="Check policies" field="checkPolicies"
+            help="/plugin/whitesource/help/help-checkPolicies.html">
+        <f:checkbox/>
+    </f:entry>
+  </f:section>
+</j:jelly>

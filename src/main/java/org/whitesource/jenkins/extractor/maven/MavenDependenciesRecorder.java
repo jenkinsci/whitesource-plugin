@@ -16,22 +16,16 @@
  * This file contains modifications to the original work made by White Source Ltd. 2012. 
  */
 
-package org.whitesource.agent.jenkins.maven;
+package org.whitesource.jenkins.extractor.maven;
 
 import hudson.Extension;
-import hudson.maven.MavenBuild;
-import hudson.maven.MavenBuildProxy;
+import hudson.maven.*;
 import hudson.maven.MavenBuildProxy.BuildCallable;
-import hudson.maven.MavenModule;
-import hudson.maven.MavenReporter;
-import hudson.maven.MavenReporterDescriptor;
-import hudson.maven.MojoInfo;
 import hudson.model.BuildListener;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
+import org.whitesource.agent.api.ChecksumUtils;
 import org.whitesource.agent.api.model.DependencyInfo;
-import org.whitesource.agent.jenkins.WssUtils;
-
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -120,8 +114,11 @@ public class MavenDependenciesRecorder extends MavenReporter {
 					info.setSystemPath(dependency.getFile().getName());
 					
 					if (dependency.getFile().exists()) {
-						String sha1 = WssUtils.calculateSha1(dependency.getFile(), null);
-						info.setSha1(sha1);
+						try {
+                            info.setSha1(ChecksumUtils.calculateSHA1(dependency.getFile()));
+                        } catch (IOException e) {
+                            // ignore
+                        }
 					}
                 	
                     dependencies.add(info);

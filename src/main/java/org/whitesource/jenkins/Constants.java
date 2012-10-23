@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.whitesource.agent.jenkins;
+package org.whitesource.jenkins;
 
 /**
  * Constants used by the plugin. 
@@ -28,13 +28,7 @@ public final class Constants {
 	public static final String AGENT_TYPE = "jenkins";
 	
 	public static final String AGENT_VERSION = "1.0";
-	
-	public static final String SERVICE_URL_KEYWORD = "wss.url";
-	
-	public static final String DEFAULT_SERVICE_URL = "http://saas.whitesourcesoftware.com/agent";
-	
-	public static final String SHA1 = "SHA-1";
-	
+
 	/* --- Error messages --- */
 	
 	public static final String ERROR_SHA1 = "Error calculating SHA-1";

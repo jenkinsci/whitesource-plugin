@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package org.whitesource.agent.jenkins;
+package org.whitesource.jenkins.extractor.generic;
 
 import hudson.FilePath;
+import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
+import org.apache.commons.lang.StringUtils;
+import org.whitesource.agent.api.ChecksumUtils;
+import org.whitesource.agent.api.model.DependencyInfo;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import org.whitesource.agent.api.model.DependencyInfo;
+import java.util.List;
 
 /**
  * Implementation of the interface for scanning the workspace for all OSS libraries. 
  * 
  * @author Edo.Shor
  */
-class LibFolderScanner implements FilePath.FileCallable<Collection<DependencyInfo>> {
+public class LibFolderScanner implements FilePath.FileCallable<Collection<DependencyInfo>> {
 
 	/* --- Static members --- */
 	
@@ -40,42 +42,48 @@ class LibFolderScanner implements FilePath.FileCallable<Collection<DependencyInf
 	
 	/* --- Members --- */
 	
-	private String libIncludes;
+	private List<String> libIncludes;
 	
-	private String libExcludes;
+	private List<String> libExcludes;
 	
-	private PrintStream logger;
+	private BuildListener listener;
 	
 	private Collection<DependencyInfo> dependencies;
 	
 	/* --- Constructors --- */
-	
-	/**
-	 * Constructor
-	 * 
-	 * @param libIncludes Ant style pattern for files to include.
-	 * @param libExcludes Ant style pattern for files to exclude.
-	 * @param logger Logger to use when required.
-	 */
-	public LibFolderScanner(String libIncludes, String libExcludes, PrintStream logger) {
-		this.libIncludes = libIncludes;
-		this.libExcludes = libExcludes;
-		this.logger = logger;
-		dependencies = new ArrayList<DependencyInfo>();
-	}
+
+    /**
+     * Constructor
+     *
+     * @param libIncludes Ant style pattern for files to include.
+     * @param libExcludes Ant style pattern for files to exclude.
+     * @param listener
+     */
+    public LibFolderScanner(List<String> libIncludes, List<String> libExcludes, BuildListener listener) {
+        this.libIncludes = libIncludes;
+        this.libExcludes = libExcludes;
+        this.listener = listener;
+        dependencies = new ArrayList<DependencyInfo>();
+    }
 
 	/* --- Interface implementation methods --- */
 
 	public Collection<DependencyInfo> invoke(File f, VirtualChannel channel)
 			throws IOException, InterruptedException {
-		logger.println("Scanning folder " + f.getName());
-		
-		FilePath[] libraries = new FilePath(f).list(libIncludes, libExcludes);
+        listener.getLogger().println("Scanning folder " + f.getName());
+
+        String includes = StringUtils.join(libIncludes, ",");
+        String excludes = StringUtils.join(libExcludes, ",");
+		FilePath[] libraries = new FilePath(f).list(includes, excludes);
 		for (FilePath file : libraries) {
-			dependencies.add(collectDependencyInfo(file));
+			try {
+                dependencies.add(collectDependencyInfo(file));
+            } catch (IOException e) {
+                listener.getLogger().println("Error extracting library details");
+            }
 		}
 		
-		logger.println("Found " + dependencies.size() + " dependencies matching inclulde / exclude pattern in folder.");
+        listener.getLogger().println("Found " + dependencies.size() + " dependencies matching inclulde / exclude pattern in folder.");
 		
 		return dependencies;
 	}
@@ -84,17 +92,10 @@ class LibFolderScanner implements FilePath.FileCallable<Collection<DependencyInf
 
 	private DependencyInfo collectDependencyInfo(FilePath file) throws IOException, InterruptedException {
 		DependencyInfo info = new DependencyInfo();
-		
 		info.setSystemPath(file.getRemote());
 		info.setArtifactId(file.getName());
-		
-		String sha1 = file.act(new CalcSha1FileCallable(logger));
-		if (Constants.ERROR_SHA1.equals(sha1)) {
-			logger.print("Error calculating SHA-1 for " + file.getRemote());
-		} else {
-			info.setSha1(sha1);
-		}
-		
+		info.setSha1(file.act(new CalcSha1FileCallable()));
+
 		return info;
 	}
 	
@@ -111,26 +112,11 @@ class LibFolderScanner implements FilePath.FileCallable<Collection<DependencyInf
 		
 		private static final long serialVersionUID = 2959979211787869074L;
 		
-		/* --- Members --- */
-		
-		private PrintStream logger;
-		
-		/* --- Constructors --- */
-		
-		/**
-		 * Constructor
-		 * 
-		 * @param logger
-		 */
-		public CalcSha1FileCallable(PrintStream logger) {
-			this.logger = logger;
-		}
-
 		/* --- Interface implementation methods --- */
 
 		public String invoke(File f, VirtualChannel channel)
 				throws IOException, InterruptedException {
-			return WssUtils.calculateSha1(f, logger);
+			return ChecksumUtils.calculateSHA1(f);
 		}
 		
 	}
