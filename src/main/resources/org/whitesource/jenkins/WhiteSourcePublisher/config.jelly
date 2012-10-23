@@ -1,62 +1,76 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 	<f:block>
   		<table width="100%" style="margin-left:2em">
-	  
+
+	        <j:invokeStatic var="isMaven" className="org.whitesource.jenkins.WssUtils" method="isMaven">
+                <j:arg value="${it}" type="hudson.model.AbstractProject"/>
+            </j:invokeStatic>
 			<j:invokeStatic var="isFreeStyle" className="org.whitesource.jenkins.WssUtils" method="isFreeStyle">
 				<j:arg value="${it}" type="hudson.model.AbstractProject"/>
 			</j:invokeStatic>
 			<j:invokeStatic var="isFreeStyleMaven" className="org.whitesource.jenkins.WssUtils" method="isFreeStyleMaven">
 				<j:arg value="${it}" type="hudson.model.AbstractProject"/>
 			</j:invokeStatic>
+			<j:invokeStatic var="selectedCheckPolicies" className="org.whitesource.jenkins.WssUtils" method="selectedCheckPolicies">
+                <j:arg value="${instance.jobCheckPolicies}" type="java.lang.String"/>
+            </j:invokeStatic>
 
-			<f:entry title="Check policies" field="jobCheckPolicies" help="/plugin/whitesource/help/help-jobCheckPolicies.html">
-                    <f:radio name="jobCheckPolicies" title="Use global settings" value="global" checked="${instance.jobCheckPolicies == 'global'}"/>
-                    <f:radio name="jobCheckPolicies" title="Enable" value="enable" checked="${instance.jobCheckPolicies == 'enable'}"/>
-                    <f:radio name="jobCheckPolicies" title="Disable" value="disable" checked="${instance.jobCheckPolicies == 'disable'}"/>
-            </f:entry>
-            <f:entry title="Override API token" field="jobApiToken" help="/plugin/whitesource/help/help-jobApiToken.html">
-                <f:textbox />
-            </f:entry>
-
-			<j:if test="${isFreeStyle}">
-				<f:entry title="Project token" field="projectToken" help="/plugin/whitesource/help/help-projectToken.html">
-		        	<f:textbox />
-			    </f:entry>
-				<f:entry title="Includes" field="libIncludes" help="/plugin/whitesource/help/help-libIncludes.html">
-		        	<f:expandableTextbox />
-			    </f:entry>
-			    <f:entry title="Excludes" field="libExcludes" help="/plugin/whitesource/help/help-libExcludes.html">
-		        	<f:expandableTextbox />
-			    </f:entry>
-			</j:if>
-			  
-			<j:if test="${isFreeStyleMaven}">
-		  		<h3>Not supported.</h3>
-				<p>
-			  		This specific job configuration is not supported yet.
-			  		For more information please check the <a href="http://docs.whitesourcesoftware.com/display/serviceDocs/Jenkins+plugin">online documentation</a>.
-				</p>
-		  	</j:if>
-			<j:if test="${!isFreeStyleMaven}">
-			    <f:advanced>
-                    <f:entry title="Project token" field="mavenProjectToken" help="/plugin/whitesource/help/help-mavenProjectToken.html">
+			<j:choose>
+                <j:when test="${isFreeStyleMaven}">
+                    <h3>Not supported.</h3>
+                    <p>
+                        This specific job configuration is not supported yet.
+                        For more information please check the <a href="http://docs.whitesourcesoftware.com/display/serviceDocs/Jenkins+plugin">online documentation</a>.
+                    </p>
+                </j:when>
+                <j:when test="${isFreeStyle}">
+                    <f:entry title="Check policies" field="jobCheckPolicies" help="/plugin/whitesource/help/help-jobCheckPolicies.html">
+                        <f:radio name="jobCheckPolicies" title="Use global settings" value="global" checked="${selectedCheckPolicies == 'global'}"/>
+                        <f:radio name="jobCheckPolicies" title="Enable" value="enable" checked="${selectedCheckPolicies == 'enable'}"/>
+                        <f:radio name="jobCheckPolicies" title="Disable" value="disable" checked="${selectedCheckPolicies == 'disable'}"/>
+                    </f:entry>
+                    <f:entry title="Override API token" field="jobApiToken" help="/plugin/whitesource/help/help-jobApiToken.html">
                         <f:textbox />
                     </f:entry>
-                    <f:entry title="Module tokens" field="moduleTokens" help="/plugin/whitesource/help/help-moduleTokens.html">
+                    <f:entry title="Project token" field="projectToken" help="/plugin/whitesource/help/help-projectToken.html">
+                        <f:textbox />
+                    </f:entry>
+                    <f:entry title="Includes" field="libIncludes" help="/plugin/whitesource/help/help-libIncludes.html">
                         <f:expandableTextbox />
                     </f:entry>
-                    <f:entry title="Modules to include" field="modulesToInclude" help="/plugin/whitesource/help/help-modulesToInclude.html">
+                    <f:entry title="Excludes" field="libExcludes" help="/plugin/whitesource/help/help-libExcludes.html">
                         <f:expandableTextbox />
                     </f:entry>
-                    <f:entry title="Modules to exclude" field="modulesToExclude" help="/plugin/whitesource/help/help-modulesToExclude.html">
-                        <f:expandableTextbox />
+                </j:when>
+                <j:when test="${isMaven}">
+                    <f:entry title="Check policies" field="jobCheckPolicies" help="/plugin/whitesource/help/help-jobCheckPolicies.html">
+                        <f:radio name="jobCheckPolicies" title="Use global settings" value="global" checked="${selectedCheckPolicies == 'global'}"/>
+                        <f:radio name="jobCheckPolicies" title="Enable" value="enable" checked="${selectedCheckPolicies == 'enable'}"/>
+                        <f:radio name="jobCheckPolicies" title="Disable" value="disable" checked="${selectedCheckPolicies == 'disable'}"/>
                     </f:entry>
-                    <f:entry title="Ignore pom modules" field="ignorePomModules" help="/plugin/whitesource/help/help-ignorePomModules.html">
-                        <f:checkbox/>
+                    <f:entry title="Override API token" field="jobApiToken" help="/plugin/whitesource/help/help-jobApiToken.html">
+                        <f:textbox />
                     </f:entry>
-			    </f:advanced>
-			</j:if>
-  
+                    <f:advanced>
+                        <f:entry title="Project token" field="mavenProjectToken" help="/plugin/whitesource/help/help-mavenProjectToken.html">
+                            <f:textbox />
+                        </f:entry>
+                        <f:entry title="Module tokens" field="moduleTokens" help="/plugin/whitesource/help/help-moduleTokens.html">
+                            <f:expandableTextbox />
+                        </f:entry>
+                        <f:entry title="Modules to include" field="modulesToInclude" help="/plugin/whitesource/help/help-modulesToInclude.html">
+                            <f:expandableTextbox />
+                        </f:entry>
+                        <f:entry title="Modules to exclude" field="modulesToExclude" help="/plugin/whitesource/help/help-modulesToExclude.html">
+                            <f:expandableTextbox />
+                        </f:entry>
+                        <f:entry title="Ignore pom modules" field="ignorePomModules" help="/plugin/whitesource/help/help-ignorePomModules.html">
+                            <f:checkbox/>
+                        </f:entry>
+                    </f:advanced>
+                </j:when>
+
+			</j:choose>
 		</table>
   	</f:block>
 </j:jelly>

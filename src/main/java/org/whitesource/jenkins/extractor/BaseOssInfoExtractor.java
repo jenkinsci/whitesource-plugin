@@ -1,5 +1,6 @@
 package org.whitesource.jenkins.extractor;
 
+import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.jenkins.WssUtils;
@@ -15,23 +16,21 @@ public abstract class BaseOssInfoExtractor {
 
     /* --- Members --- */
 
-    protected List<String> includes;
+    protected final List<String> includes;
 
-    protected List<String> excludes;
+    protected final List<String> excludes;
 
-    protected BuildListener listener;
+    protected final AbstractBuild build;
+
+    protected final BuildListener listener;
 
 
     /* --- Constructors --- */
 
-    /**
-     * Constructor
-     *
-     * @param listener
-     */
-    protected BaseOssInfoExtractor(String includes, String excludes, BuildListener listener) {
+    protected BaseOssInfoExtractor(String includes, String excludes, AbstractBuild build, BuildListener listener) {
         this.includes = WssUtils.splitParameters(includes);
         this.excludes = WssUtils.splitParameters(excludes);
+        this.build = build;
         this.listener = listener;
     }
 

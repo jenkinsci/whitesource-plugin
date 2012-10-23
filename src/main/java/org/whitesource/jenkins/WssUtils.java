@@ -16,10 +16,12 @@
 
 package org.whitesource.jenkins;
 
+import hudson.maven.MavenModuleSet;
 import hudson.model.AbstractProject;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Builder;
 import hudson.tasks.Maven;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,7 +44,17 @@ public final class WssUtils {
 
 	
 	/* --- Static methods --- */
-	
+
+    /**
+     * <b>Important: </b> do not remove since it is used in jelly config files to determine job type.
+     *
+     * @param project
+     * @return True if this is a maven project invoking top maven target.
+     */
+    public static boolean isMaven(AbstractProject<?,?> project) {
+        return project instanceof MavenModuleSet;
+    }
+
 	/**
 	 * <b>Important: </b> do not remove since it is used in jelly config files to determine job type.
 	 * 
@@ -51,8 +63,8 @@ public final class WssUtils {
 	 */
 	public static boolean isFreeStyle(AbstractProject<?,?> project) {
 		return project instanceof FreeStyleProject && !isFreeStyleMaven(project);
-	}		
-	
+	}
+
 	/**
 	 * <b>Important: </b> do not remove since it is used in jelly config files to determine job type.
 	 * 
@@ -73,6 +85,21 @@ public final class WssUtils {
 		
 		return freeStyle;
 	}
+
+    /**
+     * <b>Important: </b> do not remove since it is used in jelly config files to determine job type.
+     *
+     * @param value
+     * @return
+     */
+    public static String selectedCheckPolicies(String value) {
+        String selectedCheckPolicies = "global";
+        if (StringUtils.isNotBlank(value)) {
+            selectedCheckPolicies = value;
+        }
+
+        return selectedCheckPolicies;
+    }
 
     public static List<String> splitParameters(String paramList) {
             List<String> params = new ArrayList<String>();

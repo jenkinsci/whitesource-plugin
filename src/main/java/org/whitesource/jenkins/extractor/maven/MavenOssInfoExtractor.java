@@ -26,7 +26,7 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
 
     /* --- Members--- */
 
-    private final MavenModuleSetBuild build;
+    private final MavenModuleSetBuild mavenModuleSetBuild;
 
     private final String mavenProjectToken;
 
@@ -36,27 +36,16 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
 
     /* --- Constructors--- */
 
-    /**
-     * Constructor
-     *
-     * @param includes
-     * @param excludes
-     * @param listener
-     * @param build
-     * @param mavenProjectToken
-     * @param moduleTokens
-     * @param ignorePomModules
-     */
     public MavenOssInfoExtractor(String includes,
                                  String excludes,
+                                 MavenModuleSetBuild mavenModuleSetBuild,
                                  BuildListener listener,
-                                 MavenModuleSetBuild build,
                                  String mavenProjectToken,
                                  String moduleTokens,
                                  boolean ignorePomModules) {
-        super(includes, excludes, listener);
+        super(includes, excludes, mavenModuleSetBuild, listener);
 
-        this.build = build;
+        this.mavenModuleSetBuild = mavenModuleSetBuild;
         this.mavenProjectToken = mavenProjectToken;
         this.ignorePomModules = ignorePomModules;
         this.moduleTokens = WssUtils.splitParametersMap(moduleTokens);
@@ -69,7 +58,7 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
         Collection<AgentProjectInfo> projectInfos = new ArrayList<AgentProjectInfo>();
 
 
-        Map<MavenModule, MavenBuild> moduleLastBuilds = build.getModuleLastBuilds();
+        Map<MavenModule, MavenBuild> moduleLastBuilds = mavenModuleSetBuild.getModuleLastBuilds();
         for (Map.Entry<MavenModule, MavenBuild> entry : moduleLastBuilds.entrySet()) {
             MavenBuild moduleBuild = entry.getValue();
 

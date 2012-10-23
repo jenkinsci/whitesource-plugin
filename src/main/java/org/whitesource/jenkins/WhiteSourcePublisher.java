@@ -144,11 +144,19 @@ public class WhiteSourcePublisher extends Recorder {
         logger.println("Collecting OSS usage information");
         BaseOssInfoExtractor extractor = null;
         if ((build instanceof MavenModuleSetBuild)) {
-            extractor = new MavenOssInfoExtractor(modulesToInclude, modulesToExclude, listener,
-                    (MavenModuleSetBuild) build, mavenProjectToken, moduleTokens, ignorePomModules);
+            extractor = new MavenOssInfoExtractor(modulesToInclude,
+                    modulesToExclude,
+                    (MavenModuleSetBuild) build,
+                    listener,
+                    mavenProjectToken,
+                    moduleTokens,
+                    ignorePomModules);
         } else if ((build instanceof FreeStyleBuild)) {
-            extractor = new GenericOssInfoExtractor(libIncludes, libExcludes, listener,
-                    ((FreeStyleBuild) build).getWorkspace(), projectToken);
+            extractor = new GenericOssInfoExtractor(libIncludes,
+                    libExcludes,
+                    build,
+                    listener,
+                    projectToken);
         } else {
             logger.println("Unrecognized build type " + build.getClass().getName());
         }
@@ -164,7 +172,7 @@ public class WhiteSourcePublisher extends Recorder {
                 if (shouldCheckPolicies) {
                     logger.println("Checking policies");
                     CheckPoliciesResult result = service.checkPolicies(apiToken, projectInfos);
-//                    policyCheckReport(result, build, listener);      // TODO: restore before relese
+                    policyCheckReport(result, build, listener);
                     if (result.hasRejections()) {
                         stopBuild(build, listener, "Open source rejected by organization policies.");
                     } else {
@@ -176,8 +184,8 @@ public class WhiteSourcePublisher extends Recorder {
                 }
             } catch (WssServiceException e) {
                 stopBuildOnError(build, listener, e);
-//            } catch (IOException e) {
-//                stopBuildOnError(build, listener, e);
+            } catch (IOException e) {
+                stopBuildOnError(build, listener, e);
             } catch (RuntimeException e) {
                 stopBuildOnError(build, listener, e);
             } finally {
