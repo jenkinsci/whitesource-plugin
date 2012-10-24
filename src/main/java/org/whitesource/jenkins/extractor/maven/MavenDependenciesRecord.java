@@ -19,10 +19,9 @@
 package org.whitesource.jenkins.extractor.maven;
 
 import hudson.model.Action;
+import org.whitesource.agent.api.model.DependencyInfo;
 
 import java.util.Set;
-
-import org.whitesource.agent.api.model.DependencyInfo;
 
 /**
  * Records dependencies (including transitive) of a maven module.

@@ -34,7 +34,6 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.whitesource.agent.api.dispatch.CheckPoliciesResult;
 import org.whitesource.agent.api.dispatch.UpdateInventoryResult;
 import org.whitesource.agent.api.model.AgentProjectInfo;
-import org.whitesource.agent.api.model.DependencyInfo;
 import org.whitesource.agent.client.WhitesourceService;
 import org.whitesource.agent.client.WssServiceException;
 import org.whitesource.agent.report.PolicyCheckReport;
@@ -158,7 +157,8 @@ public class WhiteSourcePublisher extends Recorder {
                     listener,
                     projectToken);
         } else {
-            logger.println("Unrecognized build type " + build.getClass().getName());
+            stopBuild(build, listener, "Unrecognized build type " + build.getClass().getName());
+            return true;
         }
         Collection<AgentProjectInfo> projectInfos = extractor.extract();
 //        debugAgentProjectInfos(projectInfos, listener);
@@ -205,7 +205,14 @@ public class WhiteSourcePublisher extends Recorder {
     /* --- Private methods --- */
 
     private WhitesourceService createServiceClient(String serviceUrl) {
-        WhitesourceService service = new WhitesourceService(Constants.AGENT_TYPE, Constants.AGENT_VERSION, serviceUrl);
+        String url = serviceUrl;
+        if (StringUtils.isNotBlank(url)){
+            if (!url.endsWith("/")) {
+                url += "/";
+            }
+            url += "agent";
+        }
+        WhitesourceService service = new WhitesourceService(Constants.AGENT_TYPE, Constants.AGENT_VERSION, url);
 
         if (Hudson.getInstance() != null && Hudson.getInstance().proxy != null) {
             final ProxyConfiguration proxy = Hudson.getInstance().proxy;
@@ -216,17 +223,17 @@ public class WhiteSourcePublisher extends Recorder {
     }
 
     private void policyCheckReport(CheckPoliciesResult result, AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
+        PolicyCheckReportAction reportAction = new PolicyCheckReportAction(build);
+
         // generate report on slave
         final PolicyCheckReport report = new PolicyCheckReport(result,
                 build.getProject().getName(), Integer.toString(build.getNumber()));
-        FilePath reportPath = build.getWorkspace().act(new FilePath.FileCallable<FilePath>() {
-            public FilePath invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-                return new FilePath(report.generate(f, false));
-            }
-        });
+
+        FilePath reportPath = new FilePath(report.generate(new File(build.getWorkspace().toURI()), false));
+
+//        FilePath reportPath = build.getWorkspace().act(new PolicyCheckReportFileCallable(report));
 
         // copy report to master
-        PolicyCheckReportAction reportAction = new PolicyCheckReportAction(build);
         FilePath targetDir = reportAction.getArchiveTarget(build);
         if (reportPath.copyRecursiveTo("**/*", targetDir) == 0) {
             listener.error("Directory '" + reportPath + "' exists but failed copying to '" + targetDir + "'.");
@@ -266,26 +273,52 @@ public class WhiteSourcePublisher extends Recorder {
         StringUtils.join(result.getUpdatedProjects(), ",");
     }
 
-    private void debugAgentProjectInfos(Collection<AgentProjectInfo> projectInfos, BuildListener listener) {
-        PrintStream logger = listener.getLogger();
-
-        logger.println("----------------- dumping projectInfos -----------------");
-        logger.println("Total number of projects : " + projectInfos.size());
-        for (AgentProjectInfo projectInfo : projectInfos) {
-            logger.println("Project coordinates: " + projectInfo.getCoordinates());
-            logger.println("Project parent coordinates: " + projectInfo.getParentCoordinates());
-            logger.println("Project token: " + projectInfo.getProjectToken());
-
-            Collection<DependencyInfo> dependencies = projectInfo.getDependencies();
-            logger.println("total # of dependencies: " + dependencies.size());
-            for (DependencyInfo info : dependencies) {
-                logger.println(info + " SHA-1: " + info.getSha1());
-            }
-        }
-        logger.println("----------------- dump finished -----------------");
-    }
+//    private void debugAgentProjectInfos(Collection<AgentProjectInfo> projectInfos, BuildListener listener) {
+//        PrintStream logger = listener.getLogger();
+//
+//        logger.println("----------------- dumping projectInfos -----------------");
+//        logger.println("Total number of projects : " + projectInfos.size());
+//        for (AgentProjectInfo projectInfo : projectInfos) {
+//            logger.println("Project coordinates: " + projectInfo.getCoordinates());
+//            logger.println("Project parent coordinates: " + projectInfo.getParentCoordinates());
+//            logger.println("Project token: " + projectInfo.getProjectToken());
+//
+//            Collection<DependencyInfo> dependencies = projectInfo.getDependencies();
+//            logger.println("total # of dependencies: " + dependencies.size());
+//            for (DependencyInfo info : dependencies) {
+//                logger.println(info + " SHA-1: " + info.getSha1());
+//            }
+//        }
+//        logger.println("----------------- dump finished -----------------");
+//    }
 
     /* --- Nested classes --- */
+
+    /**
+     * Implementation of the interface for generating the policy check report in a machine agnostic manner.
+     */
+    static final class PolicyCheckReportFileCallable implements FilePath.FileCallable<FilePath> {
+
+        /* --- Static members--- */
+
+        private static final long serialVersionUID = -1560305874205317068L;
+
+        /* --- Members--- */
+
+        private final PolicyCheckReport report;
+
+        /* --- Constructors--- */
+
+        PolicyCheckReportFileCallable(PolicyCheckReport report) {
+            this.report = report;
+        }
+
+        /* --- Interface implementation methods --- */
+
+        public FilePath invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
+            return new FilePath(report.generate(f, false));
+        }
+    }
 
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {

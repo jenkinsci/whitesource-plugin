@@ -1,6 +1,6 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
     <t:summary icon="${it.iconFileName}">
-        White source <a href="${it.urlName}/" target="_blank"> policy check report</a>
+        <b>White Source</b> - <a href="${it.urlName}/" target="_blank"> policy check report</a>
     </t:summary>
 </j:jelly>

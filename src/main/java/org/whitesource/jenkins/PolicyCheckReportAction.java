@@ -1,7 +1,10 @@
 package org.whitesource.jenkins;
 
 import hudson.FilePath;
-import hudson.model.*;
+import hudson.model.AbstractBuild;
+import hudson.model.DirectoryBrowserSupport;
+import hudson.model.ProminentProjectAction;
+import hudson.model.Run;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 

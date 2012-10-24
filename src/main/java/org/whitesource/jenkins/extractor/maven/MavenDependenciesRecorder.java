@@ -27,6 +27,7 @@ import org.apache.maven.project.MavenProject;
 import org.whitesource.agent.api.ChecksumUtils;
 import org.whitesource.agent.api.model.DependencyInfo;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -49,13 +50,21 @@ public class MavenDependenciesRecorder extends MavenReporter {
      * All dependencies this module used, including transitive ones.
      */
     private transient Set<DependencyInfo> dependencies;
-    
+
+    /* --- Constructors --- */
+
+    /**
+     * Default constructor
+     */
+    public MavenDependenciesRecorder() {
+        dependencies = new HashSet<DependencyInfo>();
+    }
+
     /* --- Concrete implementation methods --- */
 
     @Override
     public boolean preBuild(MavenBuildProxy build, MavenProject pom, BuildListener listener) {
         listener.getLogger().println("[Jenkins] Collecting dependencies info");
-        dependencies = new HashSet<DependencyInfo>();
         return true;
     }
 
@@ -103,7 +112,8 @@ public class MavenDependenciesRecorder extends MavenReporter {
     private void recordMavenDependencies(Set<Artifact> artifacts) {
         if (artifacts != null) {
             for (Artifact dependency : artifacts) {
-                if (dependency.isResolved() && dependency.getFile() != null) {
+                File dependencyFile = dependency.getFile();
+                if (dependency.isResolved() && dependencyFile != null) {
                 	DependencyInfo info = new DependencyInfo();
                 	info.setGroupId(dependency.getGroupId());
 					info.setArtifactId(dependency.getArtifactId());
@@ -111,11 +121,11 @@ public class MavenDependenciesRecorder extends MavenReporter {
 					info.setType(dependency.getType());
 					info.setClassifier(dependency.getClassifier());
 					info.setScope(dependency.getScope());
-					info.setSystemPath(dependency.getFile().getName());
+					info.setSystemPath(dependencyFile.getName());
 					
-					if (dependency.getFile().exists()) {
+					if (dependencyFile.exists()) {
 						try {
-                            info.setSha1(ChecksumUtils.calculateSHA1(dependency.getFile()));
+                            info.setSha1(ChecksumUtils.calculateSHA1(dependencyFile));
                         } catch (IOException e) {
                             // ignore
                         }

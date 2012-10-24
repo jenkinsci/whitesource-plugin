@@ -57,7 +57,6 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
     public Collection<AgentProjectInfo> extract() throws InterruptedException, IOException {
         Collection<AgentProjectInfo> projectInfos = new ArrayList<AgentProjectInfo>();
 
-
         Map<MavenModule, MavenBuild> moduleLastBuilds = mavenModuleSetBuild.getModuleLastBuilds();
         for (Map.Entry<MavenModule, MavenBuild> entry : moduleLastBuilds.entrySet()) {
             MavenBuild moduleBuild = entry.getValue();
@@ -90,10 +89,10 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
                     dependencyInfos.addAll(dependenciesAction.getDependencies());
                     listener.getLogger().println("Found " + dependenciesAction.getDependencies().size() + " dependencies (transitive included)");
                 }
-
                 projectInfos.add(projectInfo);
+            } else {
+                listener.getLogger().println("Skipping module: " + moduleBuild.getProject().getDisplayName());
             }
-
         }
 
         return projectInfos;
@@ -102,12 +101,15 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
     /* --- Private methods --- */
 
     private boolean shouldProcess(MavenArtifactRecord action) {
-        if (action == null) return false;
+        if (action == null) {
+            return false;
+        }
 
         boolean process = true;
 
-        String artifactId = action.pomArtifact.artifactId;
-        if (ignorePomModules && action.isPOM()) {
+        String artifactId = action.mainArtifact.artifactId;
+        String type = action.mainArtifact.type;
+        if (ignorePomModules && "pom".equals(type)) { // always true when maven is not producing artifacts due to goal < package.
             process = false;
         } else if (!excludes.isEmpty() && matchAny(artifactId, excludes)) {
             process = false;

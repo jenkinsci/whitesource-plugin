@@ -1,17 +1,14 @@
 package org.whitesource.jenkins.extractor.generic;
 
-import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.agent.api.model.Coordinates;
-import org.whitesource.agent.api.model.DependencyInfo;
 import org.whitesource.jenkins.extractor.BaseOssInfoExtractor;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 
