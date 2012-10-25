@@ -74,12 +74,12 @@
         <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>wss-agent-api-client</artifactId>
-            <version>1.2.1-SNAPSHOT</version>
+            <version>1.2.1</version>
         </dependency>
         <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>wss-agent-report</artifactId>
-            <version>1.2.1-SNAPSHOT</version>
+            <version>1.2.1</version>
         </dependency>
 
         <dependency>
