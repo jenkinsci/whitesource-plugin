@@ -74,12 +74,12 @@
         <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>wss-agent-api-client</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>wss-agent-report</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -100,10 +100,8 @@
             <plugin>
                 <groupId>org.jenkins-ci.tools</groupId>
                 <artifactId>maven-hpi-plugin</artifactId>
-                <version>1.91</version>
                 <configuration>
                     <pluginFirstClassLoader>true</pluginFirstClassLoader>
-                    <!--<maskClasses>org.apache.velocity.</maskClasses>-->
                 </configuration>
             </plugin>
         </plugins>

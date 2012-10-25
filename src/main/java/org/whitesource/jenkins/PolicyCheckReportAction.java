@@ -57,15 +57,11 @@ public class PolicyCheckReportAction implements ProminentProjectAction {
         return new File(run.getRootDir(), "whitesource");
     }
 
-    public FilePath getArchiveTarget(AbstractBuild build) {
-            return new FilePath(getBuildArchiveDir(build));
-        }
-
     /**
      * Serves HTML reports.
      */
     public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-        DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(this.dir()), DISPLAY_NAME, ICON_PATH, false);
+        DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(getBuildArchiveDir(this.build)), DISPLAY_NAME, ICON_PATH, false);
         dbs.setIndexFileName("index.html");
         dbs.generateResponse(req, rsp, this);
     }

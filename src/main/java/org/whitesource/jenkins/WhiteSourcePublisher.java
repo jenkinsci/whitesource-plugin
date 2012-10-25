@@ -212,6 +212,7 @@ public class WhiteSourcePublisher extends Recorder {
             }
             url += "agent";
         }
+
         WhitesourceService service = new WhitesourceService(Constants.AGENT_TYPE, Constants.AGENT_VERSION, url);
 
         if (Hudson.getInstance() != null && Hudson.getInstance().proxy != null) {
@@ -222,26 +223,16 @@ public class WhiteSourcePublisher extends Recorder {
         return service;
     }
 
-    private void policyCheckReport(CheckPoliciesResult result, AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
-        PolicyCheckReportAction reportAction = new PolicyCheckReportAction(build);
+    private void policyCheckReport(CheckPoliciesResult result, AbstractBuild build, BuildListener listener)
+            throws IOException, InterruptedException {
+        listener.getLogger().println("Generating policy check report");
 
-        // generate report on slave
-        final PolicyCheckReport report = new PolicyCheckReport(result,
-                build.getProject().getName(), Integer.toString(build.getNumber()));
+        PolicyCheckReport report = new PolicyCheckReport(result,
+                build.getProject().getName(),
+                Integer.toString(build.getNumber()));
+        report.generate(build.getRootDir(), false);
 
-        FilePath reportPath = new FilePath(report.generate(new File(build.getWorkspace().toURI()), false));
-
-//        FilePath reportPath = build.getWorkspace().act(new PolicyCheckReportFileCallable(report));
-
-        // copy report to master
-        FilePath targetDir = reportAction.getArchiveTarget(build);
-        if (reportPath.copyRecursiveTo("**/*", targetDir) == 0) {
-            listener.error("Directory '" + reportPath + "' exists but failed copying to '" + targetDir + "'.");
-            return;
-        }
-
-        // attach the action
-        build.addAction(reportAction);
+        build.addAction(new PolicyCheckReportAction(build));
     }
 
     private void sendUpdate(String orgToken, Collection<AgentProjectInfo> projectInfos,

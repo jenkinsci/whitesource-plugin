@@ -51,20 +51,12 @@ public class MavenDependenciesRecorder extends MavenReporter {
      */
     private transient Set<DependencyInfo> dependencies;
 
-    /* --- Constructors --- */
-
-    /**
-     * Default constructor
-     */
-    public MavenDependenciesRecorder() {
-        dependencies = new HashSet<DependencyInfo>();
-    }
-
     /* --- Concrete implementation methods --- */
 
     @Override
     public boolean preBuild(MavenBuildProxy build, MavenProject pom, BuildListener listener) {
         listener.getLogger().println("[Jenkins] Collecting dependencies info");
+        dependencies = new HashSet<DependencyInfo>();
         return true;
     }
 
