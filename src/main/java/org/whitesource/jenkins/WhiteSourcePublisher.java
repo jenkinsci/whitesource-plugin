@@ -259,9 +259,9 @@ public class WhiteSourcePublisher extends Recorder {
         logger.println("White Source update results: ");
         logger.println("White Source organization: " + result.getOrganization());
         logger.println(result.getCreatedProjects().size() + " Newly created projects:");
-        StringUtils.join(result.getCreatedProjects(), ",");
+        logger.println(StringUtils.join(result.getCreatedProjects(), ","));
         logger.println(result.getUpdatedProjects().size() + " existing projects were updated:");
-        StringUtils.join(result.getUpdatedProjects(), ",");
+        logger.println(StringUtils.join(result.getUpdatedProjects(), ","));
     }
 
 //    private void debugAgentProjectInfos(Collection<AgentProjectInfo> projectInfos, BuildListener listener) {
