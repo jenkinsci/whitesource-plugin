@@ -161,7 +161,6 @@ public class WhiteSourcePublisher extends Recorder {
             return true;
         }
         Collection<AgentProjectInfo> projectInfos = extractor.extract();
-//        debugAgentProjectInfos(projectInfos, listener);
 
         // send to white source
         if (CollectionUtils.isEmpty(projectInfos)) {
@@ -263,25 +262,6 @@ public class WhiteSourcePublisher extends Recorder {
         logger.println(result.getUpdatedProjects().size() + " existing projects were updated:");
         logger.println(StringUtils.join(result.getUpdatedProjects(), ","));
     }
-
-//    private void debugAgentProjectInfos(Collection<AgentProjectInfo> projectInfos, BuildListener listener) {
-//        PrintStream logger = listener.getLogger();
-//
-//        logger.println("----------------- dumping projectInfos -----------------");
-//        logger.println("Total number of projects : " + projectInfos.size());
-//        for (AgentProjectInfo projectInfo : projectInfos) {
-//            logger.println("Project coordinates: " + projectInfo.getCoordinates());
-//            logger.println("Project parent coordinates: " + projectInfo.getParentCoordinates());
-//            logger.println("Project token: " + projectInfo.getProjectToken());
-//
-//            Collection<DependencyInfo> dependencies = projectInfo.getDependencies();
-//            logger.println("total # of dependencies: " + dependencies.size());
-//            for (DependencyInfo info : dependencies) {
-//                logger.println(info + " SHA-1: " + info.getSha1());
-//            }
-//        }
-//        logger.println("----------------- dump finished -----------------");
-//    }
 
     /* --- Nested classes --- */
 

@@ -73,12 +73,12 @@
         <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>wss-agent-api-client</artifactId>
-            <version>1.2.1</version>
+            <version>1.2.2</version>
         </dependency>
         <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>wss-agent-report</artifactId>
-            <version>1.2.1</version>
+            <version>1.2.2</version>
         </dependency>
 
         <dependency>
@@ -104,7 +104,68 @@
                 </configuration>
             </plugin>
         </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.whitesource</groupId>
+                    <artifactId>whitesource-maven-plugin</artifactId>
+                    <version>1.1.2</version>
+                    <configuration>
+                        <orgToken>${whitesource.orgToken}</orgToken>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
+	
+	<profiles>
+		<profile>
+            <id>Release</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.whitesource</groupId>
+                        <artifactId>whitesource-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>update-whitesource</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>update</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.github.github</groupId>
+                        <artifactId>site-maven-plugin</artifactId>
+                        <version>0.7</version>
+                        <configuration>
+                            <server>github</server>
+                            <merge>true</merge>
+                            <force>true</force>
+                            <message>Building site for ${project.artifactId} - ${project.version}</message>
+                            <excludes>
+                                <exclude>assembly</exclude>
+                            </excludes>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>github-pages</id>
+                                <phase>site</phase>
+                                <goals>
+                                    <goal>site</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+	</profiles>
 
     <!-- get every artifact through repo.jenkins-ci.org, which proxies all the
          artifacts that we need -->
