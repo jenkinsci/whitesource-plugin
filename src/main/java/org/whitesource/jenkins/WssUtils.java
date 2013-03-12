@@ -23,10 +23,7 @@ import hudson.tasks.Builder;
 import hudson.tasks.Maven;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -75,12 +72,10 @@ public final class WssUtils {
 		boolean freeStyle = false;
 		
 		if (project instanceof FreeStyleProject) {
-			for (Builder builder : ((FreeStyleProject) project).getBuilders()) {
-				if (builder instanceof Maven) {
-					freeStyle = true;
-					break;
-				}
-			}
+            Iterator<Builder> it = ((FreeStyleProject) project).getBuilders().iterator();
+            while(it.hasNext() && !freeStyle) {
+                freeStyle = it.next() instanceof Maven;
+            }
 		}
 		
 		return freeStyle;
@@ -108,7 +103,7 @@ public final class WssUtils {
                 String[] split = PARAM_LIST_SPLIT_PATTERN.split(paramList);
                 if (split != null) {
                     for (String param : split) {
-                        if (!(param == null || param.trim().length() == 0)) {
+                        if (StringUtils.isNotBlank(param)) {
                             params.add(param.trim());
                         }
                     }

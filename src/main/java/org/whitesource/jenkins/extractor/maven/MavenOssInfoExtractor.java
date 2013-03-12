@@ -12,10 +12,8 @@ import org.whitesource.jenkins.WssUtils;
 import org.whitesource.jenkins.extractor.BaseOssInfoExtractor;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.io.PrintStream;
+import java.util.*;
 
 /**
  * Concrete implementation for collecting open source info from embedded maven projects.
@@ -55,6 +53,7 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
 
     @Override
     public Collection<AgentProjectInfo> extract() throws InterruptedException, IOException {
+        PrintStream logger = listener.getLogger();
         Collection<AgentProjectInfo> projectInfos = new ArrayList<AgentProjectInfo>();
 
         Map<MavenModule, MavenBuild> moduleLastBuilds = mavenModuleSetBuild.getModuleLastBuilds();
@@ -63,7 +62,7 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
 
             MavenArtifactRecord action = moduleBuild.getAction(MavenArtifactRecord.class);
             if (shouldProcess(action)) {
-                listener.getLogger().println("Processing " + action.pomArtifact.canonicalName);
+                logger.println("Processing " + action.pomArtifact.canonicalName);
                 AgentProjectInfo projectInfo = new AgentProjectInfo();
 
                 projectInfo.setCoordinates(new Coordinates(action.mainArtifact.groupId,
@@ -72,7 +71,6 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
                 projectInfo.setParentCoordinates(new Coordinates(action.pomArtifact.groupId,
                         action.pomArtifact.artifactId,
                         action.pomArtifact.version));
-
 
                 if (moduleLastBuilds.size() == 1) {
                     projectInfo.setProjectToken(mavenProjectToken);
@@ -84,14 +82,15 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
                 Collection<DependencyInfo> dependencyInfos = projectInfo.getDependencies();
                 MavenDependenciesRecord dependenciesAction = moduleBuild.getAction(MavenDependenciesRecord.class);
                 if (dependenciesAction == null) {
-                    listener.getLogger().println("No dependencies found.");
+                    logger.println("No dependencies found.");
                 } else {
-                    dependencyInfos.addAll(dependenciesAction.getDependencies());
-                    listener.getLogger().println("Found " + dependenciesAction.getDependencies().size() + " dependencies (transitive included)");
+                    Set<DependencyInfo> dependencies = dependenciesAction.getDependencies();
+                    dependencyInfos.addAll(dependencies);
+                    logger.println("Found " + dependencies.size() + " dependencies (transitive included)");
                 }
                 projectInfos.add(projectInfo);
             } else {
-                listener.getLogger().println("Skipping module: " + moduleBuild.getProject().getDisplayName());
+                logger.println("Skipping module: " + moduleBuild.getProject().getDisplayName());
             }
         }
 
@@ -123,12 +122,10 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
     private boolean matchAny(String value, List<String> patterns) {
         boolean match = false;
 
-        for (String pattern : patterns) {
-            String regex = pattern.replace(".", "\\.").replace("*", ".*");
-            if (value.matches(regex)) {
-                match = true;
-                break;
-            }
+        Iterator<String> it = patterns.iterator();
+        while (it.hasNext() && !match) {
+            String regex = it.next().replace(".", "\\.").replace("*", ".*");
+            match = value.matches(regex);
         }
 
         return match;

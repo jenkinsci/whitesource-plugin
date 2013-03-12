@@ -90,7 +90,7 @@ public class MavenDependenciesRecorder extends MavenReporter {
 
             public Void call(MavenBuild build) throws IOException, InterruptedException {
                 // add the action
-                //TODO: [by yl] These actions are persisted into the build.xml of each build run - we need another
+                //These actions are persisted into the build.xml of each build run - we need another
                 //context to store these actions
                 build.getActions().add(new MavenDependenciesRecord(d));
                 return null;
