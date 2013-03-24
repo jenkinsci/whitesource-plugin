@@ -38,9 +38,9 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:git:git@github.com:jenkinsci/whitesource-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:jenkinsci/whitesource-plugin.git</developerConnection>
-        <url>git@github.com:jenkinsci/whitesource-plugin.git</url>
+        <connection>scm:git:git://github.com/jenkinsci/whitesource-plugin.git</connection>
+        <developerConnection>scm:git:https://github.com/jenkinsci/whitesource-plugin.git</developerConnection>
+        <url>http://github.com/jenkinsci/whitesource-plugin</url>
     </scm>
     <organization>
         <name>White Source</name>
