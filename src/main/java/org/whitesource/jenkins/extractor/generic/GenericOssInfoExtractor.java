@@ -10,7 +10,9 @@ import org.whitesource.jenkins.extractor.BaseOssInfoExtractor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Concrete implementation for collecting open source info from FreeStyle projects.
@@ -18,6 +20,15 @@ import java.util.Collection;
  * @author Edo.Shor
  */
 public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
+
+    private static final List<String> DEFAULT_SCAN_EXTENSIONS = new ArrayList<String>();
+    static {
+        DEFAULT_SCAN_EXTENSIONS.addAll(
+                Arrays.asList("jar", "war", "ear", "par", "rar",
+                        "dll", "exe", "ko", "so", "msi",
+                        "zip", "tar", "tar.gz",
+                        "swc", "swf"));
+    }
 
     /* --- Members --- */
 
@@ -41,19 +52,21 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
         Collection<AgentProjectInfo> projectInfos = new ArrayList<AgentProjectInfo>();
 
         if (CollectionUtils.isEmpty(includes)) {
-            listener.error("No include patterns defined. Skipping update.");
-        } else {
-            LibFolderScanner libScanner = new LibFolderScanner(includes, excludes, listener);
-            AgentProjectInfo projectInfo = new AgentProjectInfo();
-            if (StringUtils.isBlank(projectToken)) {
-                projectInfo.setCoordinates(new Coordinates(null, build.getProject().getName(), "build #" + build.getNumber()));
-            } else {
-                projectInfo.setProjectToken(projectToken);
+            for (String extension : DEFAULT_SCAN_EXTENSIONS) {
+                includes.add("**/*." + extension);
             }
-
-            projectInfo.getDependencies().addAll(build.getWorkspace().act(libScanner));
-            projectInfos.add(projectInfo);
         }
+
+        LibFolderScanner libScanner = new LibFolderScanner(includes, excludes, listener);
+        AgentProjectInfo projectInfo = new AgentProjectInfo();
+        if (StringUtils.isBlank(projectToken)) {
+            projectInfo.setCoordinates(new Coordinates(null, build.getProject().getName(), "build #" + build.getNumber()));
+        } else {
+            projectInfo.setProjectToken(projectToken);
+        }
+
+        projectInfo.getDependencies().addAll(build.getWorkspace().act(libScanner));
+        projectInfos.add(projectInfo);
 
         return projectInfos;
     }

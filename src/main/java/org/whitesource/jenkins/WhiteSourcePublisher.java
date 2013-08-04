@@ -58,6 +58,10 @@ public class WhiteSourcePublisher extends Recorder {
 
     private final String jobApiToken;
 
+    private final String product;
+
+    private final String productVersion;
+
     private final String projectToken;
 
     private final String libIncludes;
@@ -79,6 +83,8 @@ public class WhiteSourcePublisher extends Recorder {
     @DataBoundConstructor
     public WhiteSourcePublisher(String jobCheckPolicies,
                                 String jobApiToken,
+                                String product,
+                                String productVersion,
                                 String projectToken,
                                 String libIncludes,
                                 String libExcludes,
@@ -90,6 +96,8 @@ public class WhiteSourcePublisher extends Recorder {
         super();
         this.jobCheckPolicies = jobCheckPolicies;
         this.jobApiToken = jobApiToken;
+        this.product = product;
+        this.productVersion = productVersion;
         this.projectToken = projectToken;
         this.libIncludes = libIncludes;
         this.libExcludes = libExcludes;
@@ -136,31 +144,28 @@ public class WhiteSourcePublisher extends Recorder {
         if (StringUtils.isBlank(jobCheckPolicies) || "global".equals(jobCheckPolicies)) {
             shouldCheckPolicies = globalConfig.checkPolicies;
         } else {
-            shouldCheckPolicies = "enabled".equals(jobCheckPolicies);
+            shouldCheckPolicies = "enable".equals(jobCheckPolicies);
         }
 
         // collect OSS usage information
         logger.println("Collecting OSS usage information");
-        BaseOssInfoExtractor extractor = null;
+        Collection<AgentProjectInfo> projectInfos;
+        String productNameOrToken = product;
         if ((build instanceof MavenModuleSetBuild)) {
-            extractor = new MavenOssInfoExtractor(modulesToInclude,
-                    modulesToExclude,
-                    (MavenModuleSetBuild) build,
-                    listener,
-                    mavenProjectToken,
-                    moduleTokens,
-                    ignorePomModules);
+            MavenOssInfoExtractor extractor = new MavenOssInfoExtractor(modulesToInclude,
+                    modulesToExclude, (MavenModuleSetBuild) build, listener, mavenProjectToken, moduleTokens, ignorePomModules);
+            projectInfos = extractor.extract();
+            if (StringUtils.isBlank(product)) {
+                productNameOrToken = extractor.getTopMostProjectName();
+            }
         } else if ((build instanceof FreeStyleBuild)) {
-            extractor = new GenericOssInfoExtractor(libIncludes,
-                    libExcludes,
-                    build,
-                    listener,
-                    projectToken);
+            GenericOssInfoExtractor extractor = new GenericOssInfoExtractor(libIncludes,
+                    libExcludes, build, listener, projectToken);
+            projectInfos = extractor.extract();
         } else {
             stopBuild(build, listener, "Unrecognized build type " + build.getClass().getName());
             return true;
         }
-        Collection<AgentProjectInfo> projectInfos = extractor.extract();
 
         // send to white source
         if (CollectionUtils.isEmpty(projectInfos)) {
@@ -170,16 +175,16 @@ public class WhiteSourcePublisher extends Recorder {
             try {
                 if (shouldCheckPolicies) {
                     logger.println("Checking policies");
-                    CheckPoliciesResult result = service.checkPolicies(apiToken, projectInfos);
+                    CheckPoliciesResult result = service.checkPolicies(apiToken, productNameOrToken, productVersion, projectInfos);
                     policyCheckReport(result, build, listener);
                     if (result.hasRejections()) {
                         stopBuild(build, listener, "Open source rejected by organization policies.");
                     } else {
                         logger.println("All dependencies conform with open source policies.");
-                        sendUpdate(apiToken, projectInfos, service, logger);
+                        sendUpdate(apiToken, productNameOrToken, projectInfos, service, logger);
                     }
                 } else {
-                    sendUpdate(apiToken, projectInfos, service, logger);
+                    sendUpdate(apiToken, productNameOrToken, projectInfos, service, logger);
                 }
             } catch (WssServiceException e) {
                 stopBuildOnError(build, listener, e);
@@ -234,10 +239,11 @@ public class WhiteSourcePublisher extends Recorder {
         build.addAction(new PolicyCheckReportAction(build));
     }
 
-    private void sendUpdate(String orgToken, Collection<AgentProjectInfo> projectInfos,
+    private void sendUpdate(String orgToken, String productNameOrToken,
+                            Collection<AgentProjectInfo> projectInfos,
                             WhitesourceService service, PrintStream logger) throws WssServiceException {
         logger.println("Sending to White Source");
-        UpdateInventoryResult updateResult = service.update(orgToken, projectInfos);
+        UpdateInventoryResult updateResult = service.update(orgToken, productNameOrToken, productVersion, projectInfos);
         logUpdateResult(updateResult, logger);
     }
 
@@ -381,6 +387,14 @@ public class WhiteSourcePublisher extends Recorder {
 
     public String getJobApiToken() {
         return jobApiToken;
+    }
+
+    public String getProduct() {
+        return product;
+    }
+
+    public String getProductVersion() {
+        return productVersion;
     }
 
     public String getProjectToken() {

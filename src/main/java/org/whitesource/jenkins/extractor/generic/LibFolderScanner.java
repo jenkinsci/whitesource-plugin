@@ -83,7 +83,7 @@ public class LibFolderScanner implements FilePath.FileCallable<Collection<Depend
             }
 		}
 		
-        listener.getLogger().println("Found " + dependencies.size() + " dependencies matching inclulde / exclude pattern in folder.");
+        listener.getLogger().println("Found " + dependencies.size() + " dependencies matching include / exclude pattern in folder.");
 		
 		return dependencies;
 	}

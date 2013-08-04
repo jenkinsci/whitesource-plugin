@@ -2,9 +2,11 @@ package org.whitesource.jenkins.extractor.maven;
 
 import hudson.maven.MavenBuild;
 import hudson.maven.MavenModule;
+import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.maven.reporters.MavenArtifactRecord;
 import hudson.model.BuildListener;
+import org.apache.commons.lang.StringUtils;
 import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.agent.api.model.Coordinates;
 import org.whitesource.agent.api.model.DependencyInfo;
@@ -95,6 +97,13 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
         }
 
         return projectInfos;
+    }
+
+    public String getTopMostProjectName() {
+        MavenModule rootModule = mavenModuleSetBuild.getParent().getRootModule();
+        String name = rootModule.getDisplayName();
+
+        return StringUtils.isBlank(name) ? rootModule.getModuleName().artifactId : name;
     }
 
     /* --- Private methods --- */

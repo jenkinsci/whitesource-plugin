@@ -29,7 +29,7 @@ public class PolicyCheckReportAction implements ProminentProjectAction {
     /* --- Constructors --- */
 
     /**
-     * Constrcutor
+     * Constructor
      *
      * @param build
      */

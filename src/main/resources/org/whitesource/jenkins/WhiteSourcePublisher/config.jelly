@@ -25,6 +25,12 @@
                     </p>
                 </j:when>
                 <j:when test="${isFreeStyle}">
+                    <f:entry title="Product name or token" field="product" help="/plugin/whitesource/help/help-product.html">
+                        <f:textbox />
+                    </f:entry>
+                    <f:entry title="Product version" field="productVersion" help="/plugin/whitesource/help/help-productVersion.html">
+                        <f:textbox />
+                    </f:entry>
                     <f:entry title="Check policies" field="jobCheckPolicies" help="/plugin/whitesource/help/help-jobCheckPolicies.html">
                         <f:radio name="jobCheckPolicies" title="Use global settings" value="global" checked="${selectedCheckPolicies == 'global'}"/>
                         <f:radio name="jobCheckPolicies" title="Enable" value="enable" checked="${selectedCheckPolicies == 'enable'}"/>
@@ -44,6 +50,12 @@
                     </f:entry>
                 </j:when>
                 <j:when test="${isMaven}">
+                    <f:entry title="Product name or token" field="product" help="/plugin/whitesource/help/help-product.html">
+                        <f:textbox />
+                    </f:entry>
+                    <f:entry title="Product version" field="productVersion" help="/plugin/whitesource/help/help-productVersion.html">
+                        <f:textbox />
+                    </f:entry>
                     <f:entry title="Check policies" field="jobCheckPolicies" help="/plugin/whitesource/help/help-jobCheckPolicies.html">
                         <f:radio name="jobCheckPolicies" title="Use global settings" value="global" checked="${selectedCheckPolicies == 'global'}"/>
                         <f:radio name="jobCheckPolicies" title="Enable" value="enable" checked="${selectedCheckPolicies == 'enable'}"/>
