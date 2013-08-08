@@ -44,6 +44,8 @@ import org.whitesource.jenkins.extractor.maven.MavenOssInfoExtractor;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
 
 /**
@@ -140,7 +142,7 @@ public class WhiteSourcePublisher extends Recorder {
         }
 
         // should we check policies ?
-        boolean shouldCheckPolicies = false;
+        boolean shouldCheckPolicies;
         if (StringUtils.isBlank(jobCheckPolicies) || "global".equals(jobCheckPolicies)) {
             shouldCheckPolicies = globalConfig.checkPolicies;
         } else {
@@ -221,7 +223,17 @@ public class WhiteSourcePublisher extends Recorder {
 
         if (Hudson.getInstance() != null && Hudson.getInstance().proxy != null) {
             final ProxyConfiguration proxy = Hudson.getInstance().proxy;
-            service.getClient().setProxy(proxy.name, proxy.port, proxy.getUserName(), proxy.getPassword());
+
+            // ditch protocol if present
+            String host = proxy.name;
+            try {
+                URL tmpUrl = new URL(proxy.name);
+                host = tmpUrl.getHost();
+            } catch (MalformedURLException e) {
+                // nothing to do here
+            }
+
+            service.getClient().setProxy(host, proxy.port, proxy.getUserName(), proxy.getPassword());
         }
 
         return service;
