@@ -12,5 +12,29 @@
             help="/plugin/whitesource/help/help-checkPolicies.html">
         <f:checkbox/>
     </f:entry>
+    <f:block>
+      <table>
+        <f:optionalBlock name="proxySettings" title="Override proxy settings"
+                help="/plugin/whitesource/help/help-overrideProxySettings.html"
+                checked="${descriptor.overrideProxySettings}">
+          <f:entry title="Server" field="server"
+                help="/plugin/whitesource/help/help-server.html">
+            <f:textbox/>
+          </f:entry>
+          <f:entry title="Port" field="port"
+                help="/plugin/whitesource/help/help-port.html">
+            <f:textbox/>
+          </f:entry>
+          <f:entry title="User name" field="userName"
+                help="/plugin/whitesource/help/help-userName.html">
+            <f:textbox/>
+          </f:entry>
+          <f:entry title="Password" field="password"
+                help="/plugin/whitesource/help/help-password.html">
+            <f:password/>
+          </f:entry>
+        </f:optionalBlock>
+      </table>
+    </f:block>
   </f:section>
 </j:jelly>

@@ -173,7 +173,7 @@ public class WhiteSourcePublisher extends Recorder {
         if (CollectionUtils.isEmpty(projectInfos)) {
             logger.println("No open source information found.");
         } else {
-            WhitesourceService service = createServiceClient(globalConfig.serviceUrl);
+            WhitesourceService service = createServiceClient(globalConfig);
             try {
                 if (shouldCheckPolicies) {
                     logger.println("Checking policies");
@@ -210,8 +210,8 @@ public class WhiteSourcePublisher extends Recorder {
 
     /* --- Private methods --- */
 
-    private WhitesourceService createServiceClient(String serviceUrl) {
-        String url = serviceUrl;
+    private WhitesourceService createServiceClient(DescriptorImpl globalConfig) {
+        String url = globalConfig.serviceUrl;
         if (StringUtils.isNotBlank(url)){
             if (!url.endsWith("/")) {
                 url += "/";
@@ -221,22 +221,38 @@ public class WhiteSourcePublisher extends Recorder {
 
         WhitesourceService service = new WhitesourceService(Constants.AGENT_TYPE, Constants.AGENT_VERSION, url);
 
-        if (Hudson.getInstance() != null && Hudson.getInstance().proxy != null) {
-            final ProxyConfiguration proxy = Hudson.getInstance().proxy;
-
+        if (isProxyConfigured(globalConfig)) {
+            String host, userName, password;
+            int port;
+            if (globalConfig.overrideProxySettings) {
+                host = globalConfig.server;
+                port = StringUtils.isBlank(globalConfig.port) ? 0 : Integer.parseInt(globalConfig.port);
+                userName = globalConfig.userName;
+                password = globalConfig.password;
+            }
+            else { // proxy is configured in jenkins global settings
+                final ProxyConfiguration proxy = Hudson.getInstance().proxy;
+                host = proxy.name;
+                port = proxy.port;
+                userName = proxy.getUserName();
+                password = proxy.getPassword();
+            }
             // ditch protocol if present
-            String host = proxy.name;
             try {
-                URL tmpUrl = new URL(proxy.name);
+                URL tmpUrl = new URL(host);
                 host = tmpUrl.getHost();
             } catch (MalformedURLException e) {
                 // nothing to do here
             }
-
-            service.getClient().setProxy(host, proxy.port, proxy.getUserName(), proxy.getPassword());
+            service.getClient().setProxy(host, port, userName, password);
         }
 
         return service;
+    }
+
+    private boolean isProxyConfigured(DescriptorImpl globalConfig) {
+        return globalConfig.overrideProxySettings ||
+               (Hudson.getInstance() != null && Hudson.getInstance().proxy != null);
     }
 
     private void policyCheckReport(CheckPoliciesResult result, AbstractBuild build, BuildListener listener)
@@ -320,6 +336,16 @@ public class WhiteSourcePublisher extends Recorder {
 
         private boolean checkPolicies;
 
+        private boolean overrideProxySettings;
+
+        private String server;
+
+        private String port;
+
+        private String userName;
+
+        private String password;
+
         /* --- Constructors--- */
 
         /**
@@ -352,6 +378,18 @@ public class WhiteSourcePublisher extends Recorder {
             apiToken = json.getString("apiToken");
             serviceUrl  = json.getString("serviceUrl");
             checkPolicies = json.getBoolean("checkPolicies");
+
+            JSONObject proxySettings = (JSONObject) json.get("proxySettings");
+            if (proxySettings == null) {
+                overrideProxySettings = false;
+            }
+            else {
+                overrideProxySettings = true;
+                server = proxySettings.getString("server");
+                port = proxySettings.getString("port");
+                userName = proxySettings.getString("userName");
+                password = proxySettings.getString("password");
+            }
 
             save();
 
@@ -388,6 +426,46 @@ public class WhiteSourcePublisher extends Recorder {
 
         public void setCheckPolicies(boolean checkPolicies) {
             this.checkPolicies = checkPolicies;
+        }
+
+        public boolean isOverrideProxySettings() {
+            return overrideProxySettings;
+        }
+
+        public void setOverrideProxySettings(boolean overrideProxySettings) {
+            this.overrideProxySettings = overrideProxySettings;
+        }
+
+        public String getServer() {
+            return server;
+        }
+
+        public void setServer(String server) {
+            this.server = server;
+        }
+
+        /*public int getPort() {
+            return port;
+        }
+
+        public void setPort(int port) {
+            this.port = port;
+        }*/
+
+        public String getUserName() {
+            return userName;
+        }
+
+        public void setUserName(String userName) {
+            this.userName = userName;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
         }
     }
 
