@@ -5,6 +5,7 @@
 
 .idea/
 *.iml
+*.patch
 
 target/
 work/
