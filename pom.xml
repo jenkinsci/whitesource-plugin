@@ -24,7 +24,7 @@
     </parent>
 
     <artifactId>whitesource</artifactId>
-    <version>1.5.1-RC01</version>
+    <version>1.5.1</version>
     <packaging>hpi</packaging>
 
     <name>White Source Jenkins plugin</name>
@@ -66,7 +66,7 @@
 
     <properties>
         <jenkins.version>1.466</jenkins.version>
-        <agent.version>2.1.0</agent.version>
+        <agent.version>2.2.4</agent.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

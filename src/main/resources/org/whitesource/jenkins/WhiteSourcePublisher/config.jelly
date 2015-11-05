@@ -42,6 +42,9 @@
                     <f:entry title="Project token" field="projectToken" help="/plugin/whitesource/help/help-projectToken.html">
                         <f:textbox />
                     </f:entry>
+                    <f:entry title="Requester email" field="requesterEmail" help="/plugin/whitesource/help/help-requesterEmail.html">
+                        <f:textbox />
+                    </f:entry>
                     <f:entry title="Includes" field="libIncludes" help="/plugin/whitesource/help/help-libIncludes.html">
                         <f:expandableTextbox />
                     </f:entry>
@@ -66,6 +69,9 @@
                     </f:entry>
                     <f:advanced>
                         <f:entry title="Project token" field="mavenProjectToken" help="/plugin/whitesource/help/help-mavenProjectToken.html">
+                            <f:textbox />
+                        </f:entry>
+                        <f:entry title="Requester email" field="requesterEmail" help="/plugin/whitesource/help/help-requesterEmail.html">
                             <f:textbox />
                         </f:entry>
                         <f:entry title="Module tokens" field="moduleTokens" help="/plugin/whitesource/help/help-moduleTokens.html">

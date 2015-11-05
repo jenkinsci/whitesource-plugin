@@ -72,6 +72,8 @@ public class WhiteSourcePublisher extends Recorder {
 
     private final String mavenProjectToken;
 
+    private final String requesterEmail;
+
     private final String moduleTokens;
 
     private final String modulesToInclude;
@@ -91,6 +93,7 @@ public class WhiteSourcePublisher extends Recorder {
                                 String libIncludes,
                                 String libExcludes,
                                 String mavenProjectToken,
+                                String requesterEmail,
                                 String moduleTokens,
                                 String modulesToInclude,
                                 String modulesToExclude,
@@ -104,6 +107,7 @@ public class WhiteSourcePublisher extends Recorder {
         this.libIncludes = libIncludes;
         this.libExcludes = libExcludes;
         this.mavenProjectToken = mavenProjectToken;
+        this.requesterEmail = requesterEmail;
         this.moduleTokens = moduleTokens;
         this.modulesToInclude = modulesToInclude;
         this.modulesToExclude = modulesToExclude;
@@ -183,10 +187,10 @@ public class WhiteSourcePublisher extends Recorder {
                         stopBuild(build, listener, "Open source rejected by organization policies.");
                     } else {
                         logger.println("All dependencies conform with open source policies.");
-                        sendUpdate(apiToken, productNameOrToken, projectInfos, service, logger);
+                        sendUpdate(apiToken, requesterEmail, productNameOrToken, projectInfos, service, logger);
                     }
                 } else {
-                    sendUpdate(apiToken, productNameOrToken, projectInfos, service, logger);
+                    sendUpdate(apiToken, requesterEmail, productNameOrToken, projectInfos, service, logger);
                 }
             } catch (WssServiceException e) {
                 stopBuildOnError(build, listener, e);
@@ -267,11 +271,14 @@ public class WhiteSourcePublisher extends Recorder {
         build.addAction(new PolicyCheckReportAction(build));
     }
 
-    private void sendUpdate(String orgToken, String productNameOrToken,
+    private void sendUpdate(String orgToken,
+                            String requesterEmail,
+                            String productNameOrToken,
                             Collection<AgentProjectInfo> projectInfos,
-                            WhitesourceService service, PrintStream logger) throws WssServiceException {
+                            WhitesourceService service,
+                            PrintStream logger) throws WssServiceException {
         logger.println("Sending to White Source");
-        UpdateInventoryResult updateResult = service.update(orgToken, productNameOrToken, productVersion, projectInfos);
+        UpdateInventoryResult updateResult = service.update(orgToken, requesterEmail, productNameOrToken, productVersion, projectInfos);
         logUpdateResult(updateResult, logger);
     }
 
@@ -501,6 +508,10 @@ public class WhiteSourcePublisher extends Recorder {
 
     public String getMavenProjectToken() {
         return mavenProjectToken;
+    }
+
+    public String getRequesterEmail() {
+        return requesterEmail;
     }
 
     public String getModuleTokens() {
