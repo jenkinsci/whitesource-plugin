@@ -37,7 +37,6 @@ import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.agent.client.WhitesourceService;
 import org.whitesource.agent.client.WssServiceException;
 import org.whitesource.agent.report.PolicyCheckReport;
-import org.whitesource.jenkins.extractor.BaseOssInfoExtractor;
 import org.whitesource.jenkins.extractor.generic.GenericOssInfoExtractor;
 import org.whitesource.jenkins.extractor.maven.MavenOssInfoExtractor;
 
@@ -193,11 +192,11 @@ public class WhiteSourcePublisher extends Recorder {
                     sendUpdate(apiToken, requesterEmail, productNameOrToken, projectInfos, service, logger);
                 }
             } catch (WssServiceException e) {
-                stopBuildOnError(build, listener, e);
+                stopBuildOnError(build, globalConfig.failOnError, listener, e);
             } catch (IOException e) {
-                stopBuildOnError(build, listener, e);
+                stopBuildOnError(build, globalConfig.failOnError, listener, e);
             } catch (RuntimeException e) {
-                stopBuildOnError(build, listener, e);
+                stopBuildOnError(build, globalConfig.failOnError, listener, e);
             } finally {
                 service.shutdown();
             }
@@ -287,12 +286,14 @@ public class WhiteSourcePublisher extends Recorder {
         build.setResult(Result.FAILURE);
     }
 
-    private void stopBuildOnError(AbstractBuild build, BuildListener listener, Exception e) {
+    private void stopBuildOnError(AbstractBuild build, boolean failOnError, BuildListener listener, Exception e) {
         if (e instanceof IOException) {
             Util.displayIOException((IOException) e, listener);
         }
         e.printStackTrace(listener.fatalError("White Source Publisher failure"));
-        build.setResult(Result.FAILURE);
+        if (failOnError) {
+            build.setResult(Result.FAILURE);
+        }
     }
 
     private void logUpdateResult(UpdateInventoryResult result, PrintStream logger) {
@@ -343,6 +344,8 @@ public class WhiteSourcePublisher extends Recorder {
 
         private boolean checkPolicies;
 
+        private boolean failOnError;
+
         private boolean overrideProxySettings;
 
         private String server;
@@ -385,6 +388,7 @@ public class WhiteSourcePublisher extends Recorder {
             apiToken = json.getString("apiToken");
             serviceUrl  = json.getString("serviceUrl");
             checkPolicies = json.getBoolean("checkPolicies");
+            failOnError = json.getBoolean("failOnError");
 
             JSONObject proxySettings = (JSONObject) json.get("proxySettings");
             if (proxySettings == null) {
@@ -434,6 +438,10 @@ public class WhiteSourcePublisher extends Recorder {
         public void setCheckPolicies(boolean checkPolicies) {
             this.checkPolicies = checkPolicies;
         }
+
+        public boolean isFailOnError() { return failOnError; }
+
+        public void setFailOnError(boolean failOnError) { this.failOnError = failOnError; }
 
         public boolean isOverrideProxySettings() {
             return overrideProxySettings;

@@ -12,6 +12,10 @@
             help="/plugin/whitesource/help/help-checkPolicies.html">
         <f:checkbox/>
     </f:entry>
+    <f:entry title="Fail on error" field="failOnError"
+            help="/plugin/whitesource/help/help-failOnError.html">
+        <f:checkbox/>
+    </f:entry>
     <f:block>
       <table>
         <f:optionalBlock name="proxySettings" title="Override proxy settings"
