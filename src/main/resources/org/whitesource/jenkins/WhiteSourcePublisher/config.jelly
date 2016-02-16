@@ -33,7 +33,8 @@
                     </f:entry>
                     <f:entry title="Check policies" field="jobCheckPolicies" help="/plugin/whitesource/help/help-jobCheckPolicies.html">
                         <f:radio name="jobCheckPolicies" title="Use global settings" value="global" checked="${selectedCheckPolicies == 'global'}"/>
-                        <f:radio name="jobCheckPolicies" title="Enable" value="enable" checked="${selectedCheckPolicies == 'enable'}"/>
+                        <f:radio name="jobCheckPolicies" title="Enable New Libraries" value="enableNew" checked="${selectedCheckPolicies == 'enableNew'}"/>
+                        <f:radio name="jobCheckPolicies" title="Enable All Libraries" value="enableAll" checked="${selectedCheckPolicies == 'enableAll'}"/>
                         <f:radio name="jobCheckPolicies" title="Disable" value="disable" checked="${selectedCheckPolicies == 'disable'}"/>
                     </f:entry>
                     <f:entry title="Override API token" field="jobApiToken" help="/plugin/whitesource/help/help-jobApiToken.html">
@@ -60,9 +61,10 @@
                         <f:textbox />
                     </f:entry>
                     <f:entry title="Check policies" field="jobCheckPolicies" help="/plugin/whitesource/help/help-jobCheckPolicies.html">
-                        <f:radio name="jobCheckPolicies" title="Use global settings" value="global" checked="${selectedCheckPolicies == 'global'}"/>
-                        <f:radio name="jobCheckPolicies" title="Enable" value="enable" checked="${selectedCheckPolicies == 'enable'}"/>
-                        <f:radio name="jobCheckPolicies" title="Disable" value="disable" checked="${selectedCheckPolicies == 'disable'}"/>
+                      <f:radio name="jobCheckPolicies" title="Use global settings" value="global" checked="${selectedCheckPolicies == 'global'}"/>
+                      <f:radio name="jobCheckPolicies" title="Enable New Libraries" value="enableNew" checked="${selectedCheckPolicies == 'enableNew'}"/>
+                      <f:radio name="jobCheckPolicies" title="Enable All Libraries" value="enableAll" checked="${selectedCheckPolicies == 'enableAll'}"/>
+                      <f:radio name="jobCheckPolicies" title="Disable" value="disable" checked="${selectedCheckPolicies == 'disable'}"/>
                     </f:entry>
                     <f:entry title="Override API token" field="jobApiToken" help="/plugin/whitesource/help/help-jobApiToken.html">
                         <f:textbox />

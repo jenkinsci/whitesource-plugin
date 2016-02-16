@@ -32,6 +32,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.whitesource.agent.api.dispatch.CheckPoliciesResult;
+import org.whitesource.agent.api.dispatch.CheckPolicyComplianceResult;
 import org.whitesource.agent.api.dispatch.UpdateInventoryResult;
 import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.agent.client.WhitesourceService;
@@ -146,10 +147,13 @@ public class WhiteSourcePublisher extends Recorder {
 
         // should we check policies ?
         boolean shouldCheckPolicies;
+        boolean checkAllLibraries = false;
         if (StringUtils.isBlank(jobCheckPolicies) || "global".equals(jobCheckPolicies)) {
-            shouldCheckPolicies = globalConfig.checkPolicies;
+            shouldCheckPolicies = "enableNew".equals(globalConfig.checkPolicies) || "enableAll".equals(globalConfig.checkPolicies);
+            checkAllLibraries = "enableAll".equals(globalConfig.checkPolicies);
         } else {
-            shouldCheckPolicies = "enable".equals(jobCheckPolicies);
+            shouldCheckPolicies = "enableNew".equals(jobCheckPolicies) || "enableAll".equals(jobCheckPolicies);
+            checkAllLibraries = "enableAll".equals(jobCheckPolicies);
         }
 
         // collect OSS usage information
@@ -180,7 +184,8 @@ public class WhiteSourcePublisher extends Recorder {
             try {
                 if (shouldCheckPolicies) {
                     logger.println("Checking policies");
-                    CheckPoliciesResult result = service.checkPolicies(apiToken, productNameOrToken, productVersion, projectInfos);
+                    CheckPolicyComplianceResult result = service.checkPolicyCompliance(apiToken, productNameOrToken ,productVersion, projectInfos, checkAllLibraries);
+//                    CheckPoliciesResult result = service.checkPolicies(apiToken, productNameOrToken, productVersion, projectInfos);
                     policyCheckReport(result, build, listener);
                     if (result.hasRejections()) {
                         stopBuild(build, listener, "Open source rejected by organization policies.");
@@ -258,7 +263,7 @@ public class WhiteSourcePublisher extends Recorder {
                (Hudson.getInstance() != null && Hudson.getInstance().proxy != null);
     }
 
-    private void policyCheckReport(CheckPoliciesResult result, AbstractBuild build, BuildListener listener)
+    private void policyCheckReport(CheckPolicyComplianceResult result, AbstractBuild build, BuildListener listener) //CheckPoliciesResult
             throws IOException, InterruptedException {
         listener.getLogger().println("Generating policy check report");
 
@@ -342,7 +347,9 @@ public class WhiteSourcePublisher extends Recorder {
 
         private String apiToken;
 
-        private boolean checkPolicies;
+
+        private String checkPolicies;
+//        private boolean checkPolicies;
 
         private boolean failOnError;
 
@@ -387,7 +394,8 @@ public class WhiteSourcePublisher extends Recorder {
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
             apiToken = json.getString("apiToken");
             serviceUrl  = json.getString("serviceUrl");
-            checkPolicies = json.getBoolean("checkPolicies");
+            checkPolicies = json.getString("checkPolicies");
+//            checkPolicies = json.getBoolean("checkPolicies");
             failOnError = json.getBoolean("failOnError");
 
             JSONObject proxySettings = (JSONObject) json.get("proxySettings");
@@ -431,11 +439,15 @@ public class WhiteSourcePublisher extends Recorder {
             this.apiToken = apiToken;
         }
 
-        public boolean isCheckPolicies() {
+        public String getCheckPolicies() {
             return checkPolicies;
         }
 
-        public void setCheckPolicies(boolean checkPolicies) {
+//        public boolean isCheckPolicies() {
+//            return checkPolicies;
+//        }
+
+        public void setCheckPolicies(String checkPolicies) {
             this.checkPolicies = checkPolicies;
         }
 

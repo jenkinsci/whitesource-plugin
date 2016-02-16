@@ -96,6 +96,21 @@ public final class WssUtils {
         return selectedCheckPolicies;
     }
 
+    /**
+     * <b>Important: </b> do not remove since it is used in jelly global files to determine job type.
+     *
+     * @param value
+     * @return
+     */
+    public static String selectedGlobalCheckPolicies(String value) {
+        String globalCheckedPolicies = "disable";
+        if (StringUtils.isNotBlank(value)) {
+            globalCheckedPolicies = value;
+        }
+
+        return globalCheckedPolicies;
+    }
+
     public static List<String> splitParameters(String paramList) {
             List<String> params = new ArrayList<String>();
 
