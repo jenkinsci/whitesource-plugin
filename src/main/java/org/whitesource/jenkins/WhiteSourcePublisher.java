@@ -56,6 +56,10 @@ public class WhiteSourcePublisher extends Recorder {
 
     /* --- Members --- */
 
+    public static final String GLOBAL = "global";
+    public static final String ENABLE_NEW = "enableNew";
+    public static final String ENABLE_ALL = "enableAll";
+
     private final String jobCheckPolicies;
 
     private final String jobApiToken;
@@ -148,12 +152,12 @@ public class WhiteSourcePublisher extends Recorder {
         // should we check policies ?
         boolean shouldCheckPolicies;
         boolean checkAllLibraries = false;
-        if (StringUtils.isBlank(jobCheckPolicies) || "global".equals(jobCheckPolicies)) {
-            shouldCheckPolicies = "enableNew".equals(globalConfig.checkPolicies) || "enableAll".equals(globalConfig.checkPolicies);
-            checkAllLibraries = "enableAll".equals(globalConfig.checkPolicies);
+        if (StringUtils.isBlank(jobCheckPolicies) || GLOBAL.equals(jobCheckPolicies)) {
+            shouldCheckPolicies = ENABLE_NEW.equals(globalConfig.checkPolicies) || ENABLE_ALL.equals(globalConfig.checkPolicies);
+            checkAllLibraries = ENABLE_ALL.equals(globalConfig.checkPolicies);
         } else {
-            shouldCheckPolicies = "enableNew".equals(jobCheckPolicies) || "enableAll".equals(jobCheckPolicies);
-            checkAllLibraries = "enableAll".equals(jobCheckPolicies);
+            shouldCheckPolicies = ENABLE_NEW.equals(jobCheckPolicies) || ENABLE_ALL.equals(jobCheckPolicies);
+            checkAllLibraries = ENABLE_ALL.equals(jobCheckPolicies);
         }
 
         // collect OSS usage information
