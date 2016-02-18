@@ -13,7 +13,7 @@
                 help="/plugin/whitesource/help/help-serviceUrl.html">
             <f:textbox/>
         </f:entry>
-        <f:entry title="Check policies compliance" field="checkPolicies" help="/plugin/whitesource/help/help-checkPolicies.html" >
+        <f:entry title="Check policy compliance" field="checkPolicies" help="/plugin/whitesource/help/help-checkPolicies.html" >
                    <f:radio name="checkPolicies" title="Check only new libraries" value="enableNew" checked="${selectedGlobalCheckPolicies == 'enableNew'}"/>
                    <f:radio name="checkPolicies" title="Force check all libraries" value="enableAll" checked="${selectedGlobalCheckPolicies == 'enableAll'}"/>
                    <f:radio name="checkPolicies" title="Disable" value="disable" checked="${selectedGlobalCheckPolicies == 'disable'}"/>

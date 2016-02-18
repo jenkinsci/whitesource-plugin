@@ -67,7 +67,7 @@
 
     <properties>
         <jenkins.version>1.466</jenkins.version>
-        <agent.version>2.2.7-SNAPSHOT</agent.version>
+        <agent.version>2.2.7</agent.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

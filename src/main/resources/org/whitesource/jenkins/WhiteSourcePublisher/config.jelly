@@ -31,7 +31,7 @@
                     <f:entry title="Product version" field="productVersion" help="/plugin/whitesource/help/help-productVersion.html">
                         <f:textbox />
                     </f:entry>
-                    <f:entry title="Check policies" field="jobCheckPolicies" help="/plugin/whitesource/help/help-jobCheckPolicies.html">
+                    <f:entry title="Check policy compliance" field="jobCheckPolicies" help="/plugin/whitesource/help/help-jobCheckPolicies.html">
                         <f:radio name="jobCheckPolicies" title="Use global settings" value="global" checked="${selectedCheckPolicies == 'global'}"/>
                         <f:radio name="jobCheckPolicies" title="Check only new libraries" value="enableNew" checked="${selectedCheckPolicies == 'enableNew'}"/>
                         <f:radio name="jobCheckPolicies" title="Force check all libraries" value="enableAll" checked="${selectedCheckPolicies == 'enableAll'}"/>
@@ -60,7 +60,7 @@
                     <f:entry title="Product version" field="productVersion" help="/plugin/whitesource/help/help-productVersion.html">
                         <f:textbox />
                     </f:entry>
-                    <f:entry title="Check policies compliance" field="jobCheckPolicies" help="/plugin/whitesource/help/help-jobCheckPolicies.html">
+                    <f:entry title="Check policy compliance" field="jobCheckPolicies" help="/plugin/whitesource/help/help-jobCheckPolicies.html">
                        <f:radio name="jobCheckPolicies" title="Use global settings" value="global" checked="${selectedCheckPolicies == 'global'}"/>
                        <f:radio name="jobCheckPolicies" title="Check only new libraries" value="enableNew" checked="${selectedCheckPolicies == 'enableNew'}"/>
                        <f:radio name="jobCheckPolicies" title="Force check all libraries" value="enableAll" checked="${selectedCheckPolicies == 'enableAll'}"/>

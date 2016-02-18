@@ -27,7 +27,7 @@ public final class Constants {
 	
 	public static final String AGENT_TYPE = "jenkins";
 	
-	public static final String AGENT_VERSION = "2.1.0";
+	public static final String AGENT_VERSION = "2.2.7";
 
 	/* --- Error messages --- */
 	

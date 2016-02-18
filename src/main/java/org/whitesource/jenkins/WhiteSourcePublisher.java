@@ -189,7 +189,6 @@ public class WhiteSourcePublisher extends Recorder {
                 if (shouldCheckPolicies) {
                     logger.println("Checking policies");
                     CheckPolicyComplianceResult result = service.checkPolicyCompliance(apiToken, productNameOrToken ,productVersion, projectInfos, checkAllLibraries);
-//                    CheckPoliciesResult result = service.checkPolicies(apiToken, productNameOrToken, productVersion, projectInfos);
                     policyCheckReport(result, build, listener);
                     if (result.hasRejections()) {
                         stopBuild(build, listener, "Open source rejected by organization policies.");
