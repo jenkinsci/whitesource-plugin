@@ -113,7 +113,7 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
             return false;
         }
 
-        boolean process = true;
+        boolean process = includes.isEmpty();
 
         String artifactId = action.mainArtifact.artifactId;
         String type = action.mainArtifact.type;

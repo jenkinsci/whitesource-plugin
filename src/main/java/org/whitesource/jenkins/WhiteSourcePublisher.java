@@ -28,10 +28,10 @@ import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-import org.whitesource.agent.api.dispatch.CheckPoliciesResult;
 import org.whitesource.agent.api.dispatch.CheckPolicyComplianceResult;
 import org.whitesource.agent.api.dispatch.UpdateInventoryResult;
 import org.whitesource.agent.api.model.AgentProjectInfo;
@@ -59,6 +59,7 @@ public class WhiteSourcePublisher extends Recorder {
     public static final String GLOBAL = "global";
     public static final String ENABLE_NEW = "enableNew";
     public static final String ENABLE_ALL = "enableAll";
+    public static final int DEFAULT_TIMEOUT = 60;
 
     private final String jobCheckPolicies;
 
@@ -229,10 +230,16 @@ public class WhiteSourcePublisher extends Recorder {
             }
             url += "agent";
         }
+        int connectionTimeout = DEFAULT_TIMEOUT;
+        if (NumberUtils.isNumber(globalConfig.connectionTimeout)) {
+            int connectionTimeoutInteger = Integer.parseInt(globalConfig.connectionTimeout);
+            connectionTimeout = connectionTimeoutInteger > 0 ? connectionTimeoutInteger : connectionTimeout;
+        }
+        boolean proxyConfigured = isProxyConfigured(globalConfig);
+        WhitesourceService service = new WhitesourceService(Constants.AGENT_TYPE, Constants.AGENT_VERSION, url,
+                proxyConfigured, connectionTimeout);
 
-        WhitesourceService service = new WhitesourceService(Constants.AGENT_TYPE, Constants.AGENT_VERSION, url);
-
-        if (isProxyConfigured(globalConfig)) {
+        if (proxyConfigured) {
             String host, userName, password;
             int port;
             if (globalConfig.overrideProxySettings) {
@@ -352,7 +359,6 @@ public class WhiteSourcePublisher extends Recorder {
 
 
         private String checkPolicies;
-//        private boolean checkPolicies;
 
         private boolean failOnError;
 
@@ -365,6 +371,8 @@ public class WhiteSourcePublisher extends Recorder {
         private String userName;
 
         private String password;
+
+        private String connectionTimeout;
 
         /* --- Constructors--- */
 
@@ -398,7 +406,6 @@ public class WhiteSourcePublisher extends Recorder {
             apiToken = json.getString("apiToken");
             serviceUrl  = json.getString("serviceUrl");
             checkPolicies = json.getString("checkPolicies");
-//            checkPolicies = json.getBoolean("checkPolicies");
             failOnError = json.getBoolean("failOnError");
 
             JSONObject proxySettings = (JSONObject) json.get("proxySettings");
@@ -412,7 +419,7 @@ public class WhiteSourcePublisher extends Recorder {
                 userName = proxySettings.getString("userName");
                 password = proxySettings.getString("password");
             }
-
+            connectionTimeout =json.getString("connectionTimeout");
             save();
 
             return super.configure(req, json);
@@ -422,6 +429,11 @@ public class WhiteSourcePublisher extends Recorder {
 
         public FormValidation doCheckApiToken(@QueryParameter String apiToken) {
             return FormValidation.validateRequired(apiToken);
+        }
+
+        public FormValidation doCheckConnectionTimeout(@QueryParameter String connectionTimeout) {
+            FormValidation formValidation = FormValidation.validatePositiveInteger(connectionTimeout);
+            return formValidation;
         }
 
         /* --- Getters / Setters --- */
@@ -445,10 +457,6 @@ public class WhiteSourcePublisher extends Recorder {
         public String getCheckPolicies() {
             return checkPolicies;
         }
-
-//        public boolean isCheckPolicies() {
-//            return checkPolicies;
-//        }
 
         public void setCheckPolicies(String checkPolicies) {
             this.checkPolicies = checkPolicies;
@@ -496,6 +504,14 @@ public class WhiteSourcePublisher extends Recorder {
 
         public void setPassword(String password) {
             this.password = password;
+        }
+
+        public String getConnectionTimeout() {
+            return connectionTimeout;
+        }
+
+        public void setConnectionTimeout(String connectionTimeout) {
+            this.connectionTimeout = connectionTimeout;
         }
     }
 

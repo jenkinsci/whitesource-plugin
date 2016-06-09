@@ -46,6 +46,10 @@
             </f:optionalBlock>
           </table>
         </f:block>
+        <f:entry title="Connection timeout" field="connectionTimeout"
+          help="/plugin/whitesource/help/connectionTimeout.html">
+          <f:textbox  default="60"/>
+        </f:entry>
       </f:section>
     </f:block>
 </j:jelly>
