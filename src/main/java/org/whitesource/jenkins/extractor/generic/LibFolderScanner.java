@@ -20,6 +20,7 @@ import hudson.FilePath;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.remoting.RoleChecker;
 import org.whitesource.agent.api.ChecksumUtils;
 import org.whitesource.agent.api.model.DependencyInfo;
 
@@ -98,6 +99,11 @@ public class LibFolderScanner implements FilePath.FileCallable<Collection<Depend
 
 		return info;
 	}
+
+	@Override
+	public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
+	}
 	
 	/* --- Nested classes --- */
 	
@@ -118,6 +124,10 @@ public class LibFolderScanner implements FilePath.FileCallable<Collection<Depend
 				throws IOException, InterruptedException {
 			return ChecksumUtils.calculateSHA1(f);
 		}
-		
+
+		@Override
+		public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
+		}
 	}
 }

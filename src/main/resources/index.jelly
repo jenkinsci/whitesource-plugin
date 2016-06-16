@@ -1,3 +1,4 @@
+<?jelly escape-by-default='true'?>
 <div>
 	This plugin brings automatic open source management with <a href="http://www.whitesourcesoftware.com/">White Source</a> to jenkins users.
 </div>
