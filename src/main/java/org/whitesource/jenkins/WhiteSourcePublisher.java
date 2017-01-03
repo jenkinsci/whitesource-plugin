@@ -323,37 +323,6 @@ public class WhiteSourcePublisher extends Recorder {
 
     /* --- Nested classes --- */
 
-    /**
-     * Implementation of the interface for generating the policy check report in a machine agnostic manner.
-     */
-    static final class PolicyCheckReportFileCallable implements FilePath.FileCallable<FilePath> {
-
-        /* --- Static members--- */
-
-        private static final long serialVersionUID = -1560305874205317068L;
-
-        /* --- Members--- */
-
-        private final PolicyCheckReport report;
-
-        /* --- Constructors--- */
-
-        PolicyCheckReportFileCallable(PolicyCheckReport report) {
-            this.report = report;
-        }
-
-        /* --- Interface implementation methods --- */
-
-        public FilePath invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-            return new FilePath(report.generate(f, false));
-        }
-
-        @Override
-        public void checkRoles(RoleChecker roleChecker) throws SecurityException {
-
-        }
-    }
-
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
