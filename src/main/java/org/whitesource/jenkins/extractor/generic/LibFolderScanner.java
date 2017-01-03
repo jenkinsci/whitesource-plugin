@@ -19,8 +19,8 @@ package org.whitesource.jenkins.extractor.generic;
 import hudson.FilePath;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
+import jenkins.MasterToSlaveFileCallable;
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.remoting.RoleChecker;
 import org.whitesource.agent.api.ChecksumUtils;
 import org.whitesource.agent.api.model.DependencyInfo;
 
@@ -35,7 +35,7 @@ import java.util.List;
  * 
  * @author Edo.Shor
  */
-public class LibFolderScanner implements FilePath.FileCallable<Collection<DependencyInfo>> {
+public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<DependencyInfo>> {
 
 	/* --- Static members --- */
 	
@@ -100,11 +100,6 @@ public class LibFolderScanner implements FilePath.FileCallable<Collection<Depend
 		return info;
 	}
 
-	@Override
-	public void checkRoles(RoleChecker roleChecker) throws SecurityException {
-
-	}
-	
 	/* --- Nested classes --- */
 	
 	/**
@@ -112,7 +107,7 @@ public class LibFolderScanner implements FilePath.FileCallable<Collection<Depend
 	 * 
 	 * @author Edo.Shor
 	 */
-	static class CalcSha1FileCallable implements FilePath.FileCallable<String> {
+	static class CalcSha1FileCallable extends MasterToSlaveFileCallable<String> {
 
 		/* --- Static members --- */
 		
@@ -125,9 +120,5 @@ public class LibFolderScanner implements FilePath.FileCallable<Collection<Depend
 			return ChecksumUtils.calculateSHA1(f);
 		}
 
-		@Override
-		public void checkRoles(RoleChecker roleChecker) throws SecurityException {
-
-		}
 	}
 }
