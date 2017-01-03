@@ -1,11 +1,13 @@
 package org.whitesource.jenkins.extractor.generic;
 
+import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.agent.api.model.Coordinates;
+import org.whitesource.agent.api.model.DependencyInfo;
 import org.whitesource.jenkins.extractor.BaseOssInfoExtractor;
 
 import java.io.IOException;
@@ -65,7 +67,16 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
             projectInfo.setProjectToken(projectToken);
         }
 
-        projectInfo.getDependencies().addAll(build.getWorkspace().act(libScanner));
+        FilePath buildWorkspace = build.getWorkspace();
+        if (buildWorkspace == null) {
+            throw new RuntimeException("Failed to acquire the Build's workspace");
+        }
+        Collection<DependencyInfo> dependencies = projectInfo.getDependencies();
+        if (dependencies == null) {
+            dependencies = new ArrayList<DependencyInfo>();
+            projectInfo.setDependencies((List<DependencyInfo>) dependencies);
+        }
+        dependencies.addAll(buildWorkspace.act(libScanner));
         projectInfos.add(projectInfo);
 
         return projectInfos;

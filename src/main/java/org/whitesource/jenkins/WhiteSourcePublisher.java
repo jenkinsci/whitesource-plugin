@@ -129,7 +129,11 @@ public class WhiteSourcePublisher extends Recorder {
 
         logger.println("Updating White Source");
 
-        if (build.getResult().isWorseThan(Result.SUCCESS)) {
+        Result buildResult = build.getResult();
+        if (buildResult == null) {
+            throw new RuntimeException("Failed to acquire build result");
+        }
+        if (buildResult.isWorseThan(Result.SUCCESS)) {
             logger.println("Build failed. Skipping update.");
             return true;
         }
@@ -250,7 +254,11 @@ public class WhiteSourcePublisher extends Recorder {
                 password = globalConfig.password;
             }
             else { // proxy is configured in jenkins global settings
-                final ProxyConfiguration proxy = Hudson.getInstance().proxy;
+                Hudson hudsonInstance = Hudson.getInstance();
+                if (hudsonInstance == null) {
+                    throw new RuntimeException("Failed to acquire Hudson Instance");
+                }
+                final ProxyConfiguration proxy = hudsonInstance.proxy;
                 host = proxy.name;
                 port = proxy.port;
                 userName = proxy.getUserName();
@@ -270,8 +278,9 @@ public class WhiteSourcePublisher extends Recorder {
     }
 
     private boolean isProxyConfigured(DescriptorImpl globalConfig) {
+        Hudson hudsonInstance = Hudson.getInstance();
         return globalConfig.overrideProxySettings ||
-               (Hudson.getInstance() != null && Hudson.getInstance().proxy != null);
+               (hudsonInstance != null && hudsonInstance.proxy != null);
     }
 
     private void policyCheckReport(CheckPolicyComplianceResult result, AbstractBuild build, BuildListener listener) //CheckPoliciesResult
