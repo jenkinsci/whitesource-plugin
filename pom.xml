@@ -24,7 +24,7 @@
     </parent>
 
     <artifactId>whitesource</artifactId>
-    <version>1.7.3-SNAPSHOT</version>
+    <version>1.7.3</version>
     <packaging>hpi</packaging>
 
     <name>White Source Jenkins plugin</name>
@@ -41,7 +41,7 @@
         <connection>scm:git:git://github.com/jenkinsci/whitesource-plugin.git</connection>
         <developerConnection>scm:git:https://github.com/jenkinsci/whitesource-plugin.git</developerConnection>
         <url>http://github.com/jenkinsci/whitesource-plugin</url>
-      <tag>HEAD</tag>
+      <tag>release-tag-1.7.3</tag>
   </scm>
     <organization>
         <name>White Source</name>
