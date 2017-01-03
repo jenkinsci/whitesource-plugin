@@ -6,6 +6,7 @@
 .idea/
 *.iml
 *.patch
+*.zip
 
 target/
 work/
