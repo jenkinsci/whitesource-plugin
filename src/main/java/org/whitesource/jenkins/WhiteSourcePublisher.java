@@ -466,13 +466,13 @@ public class WhiteSourcePublisher extends Recorder {
             this.server = server;
         }
 
-        /*public int getPort() {
+        public String getPort() {
             return port;
         }
 
-        public void setPort(int port) {
+        public void setPort(String port) {
             this.port = port;
-        }*/
+        }
 
         public String getUserName() {
             return userName;
