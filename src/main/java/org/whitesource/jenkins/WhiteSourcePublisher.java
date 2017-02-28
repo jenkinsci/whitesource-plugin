@@ -577,4 +577,7 @@ public class WhiteSourcePublisher extends Recorder {
         return modulesToExclude;
     }
 
+    public boolean isIgnorePomModules() {
+        return ignorePomModules;
+    }
 }
