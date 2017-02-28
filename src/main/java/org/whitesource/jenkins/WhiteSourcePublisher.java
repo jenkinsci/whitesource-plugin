@@ -19,7 +19,6 @@ package org.whitesource.jenkins;
 import hudson.*;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
-import hudson.remoting.VirtualChannel;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -29,7 +28,6 @@ import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -42,7 +40,6 @@ import org.whitesource.agent.report.PolicyCheckReport;
 import org.whitesource.jenkins.extractor.generic.GenericOssInfoExtractor;
 import org.whitesource.jenkins.extractor.maven.MavenOssInfoExtractor;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
@@ -60,9 +57,12 @@ public class WhiteSourcePublisher extends Recorder {
     public static final String GLOBAL = "global";
     public static final String ENABLE_NEW = "enableNew";
     public static final String ENABLE_ALL = "enableAll";
+    public static final String JOB_FORCE_UPDATE = "forceUpdate";
     public static final int DEFAULT_TIMEOUT = 60;
 
     private final String jobCheckPolicies;
+
+    private final String jobForceUpdate;
 
     private final String jobApiToken;
 
@@ -92,6 +92,7 @@ public class WhiteSourcePublisher extends Recorder {
 
     @DataBoundConstructor
     public WhiteSourcePublisher(String jobCheckPolicies,
+                                String jobForceUpdate,
                                 String jobApiToken,
                                 String product,
                                 String productVersion,
@@ -106,6 +107,7 @@ public class WhiteSourcePublisher extends Recorder {
                                 boolean ignorePomModules) {
         super();
         this.jobCheckPolicies = jobCheckPolicies;
+        this.jobForceUpdate = jobForceUpdate;
         this.jobApiToken = jobApiToken;
         this.product = product;
         this.productVersion = productVersion;
@@ -157,13 +159,21 @@ public class WhiteSourcePublisher extends Recorder {
 
         // should we check policies ?
         boolean shouldCheckPolicies;
-        boolean checkAllLibraries = false;
+        boolean checkAllLibraries;
         if (StringUtils.isBlank(jobCheckPolicies) || GLOBAL.equals(jobCheckPolicies)) {
-            shouldCheckPolicies = ENABLE_NEW.equals(globalConfig.checkPolicies) || ENABLE_ALL.equals(globalConfig.checkPolicies);
-            checkAllLibraries = ENABLE_ALL.equals(globalConfig.checkPolicies);
+            String checkPolicies = globalConfig.checkPolicies;
+            shouldCheckPolicies = ENABLE_NEW.equals(checkPolicies) || ENABLE_ALL.equals(checkPolicies);
+            checkAllLibraries = ENABLE_ALL.equals(checkPolicies);
         } else {
             shouldCheckPolicies = ENABLE_NEW.equals(jobCheckPolicies) || ENABLE_ALL.equals(jobCheckPolicies);
             checkAllLibraries = ENABLE_ALL.equals(jobCheckPolicies);
+        }
+
+        boolean isForceUpdate;
+        if (StringUtils.isBlank(jobForceUpdate) || GLOBAL.equals(jobForceUpdate)) {
+            isForceUpdate = globalConfig.globalForceUpdate;
+        } else {
+            isForceUpdate = JOB_FORCE_UPDATE.equals(jobForceUpdate);
         }
 
         // collect OSS usage information
@@ -196,10 +206,14 @@ public class WhiteSourcePublisher extends Recorder {
                     logger.println("Checking policies");
                     CheckPolicyComplianceResult result = service.checkPolicyCompliance(apiToken, productNameOrToken ,productVersion, projectInfos, checkAllLibraries);
                     policyCheckReport(result, build, listener);
-                    if (result.hasRejections()) {
+                    boolean hasRejections = result.hasRejections();
+                    if (hasRejections && !isForceUpdate) {
                         stopBuild(build, listener, "Open source rejected by organization policies.");
                     } else {
-                        logger.println("All dependencies conform with open source policies.");
+                        String message = hasRejections ? "Some dependencies violate open source policies, however all" +
+                                " were force updated to organization inventory." :
+                                "All dependencies conform with open source policies.";
+                        logger.println(message);
                         sendUpdate(apiToken, requesterEmail, productNameOrToken, projectInfos, service, logger);
                     }
                 } else {
@@ -341,8 +355,9 @@ public class WhiteSourcePublisher extends Recorder {
 
         private String apiToken;
 
-
         private String checkPolicies;
+
+        private boolean globalForceUpdate;
 
         private boolean failOnError;
 
@@ -391,6 +406,7 @@ public class WhiteSourcePublisher extends Recorder {
             serviceUrl  = json.getString("serviceUrl");
             checkPolicies = json.getString("checkPolicies");
             failOnError = json.getBoolean("failOnError");
+            globalForceUpdate = json.getBoolean("globalForceUpdate");
 
             JSONObject proxySettings = (JSONObject) json.get("proxySettings");
             if (proxySettings == null) {
@@ -497,12 +513,24 @@ public class WhiteSourcePublisher extends Recorder {
         public void setConnectionTimeout(String connectionTimeout) {
             this.connectionTimeout = connectionTimeout;
         }
+
+        public boolean isGlobalForceUpdate() {
+            return globalForceUpdate;
+        }
+
+        public void setGlobalForceUpdate(boolean globalForceUpdate) {
+            this.globalForceUpdate = globalForceUpdate;
+        }
     }
 
     /* --- Getters --- */
 
     public String getJobCheckPolicies() {
         return jobCheckPolicies;
+    }
+
+    public String getJobForceUpdate() {
+        return jobForceUpdate;
     }
 
     public String getJobApiToken() {
@@ -549,7 +577,4 @@ public class WhiteSourcePublisher extends Recorder {
         return modulesToExclude;
     }
 
-    public boolean isIgnorePomModules() {
-        return ignorePomModules;
-    }
 }

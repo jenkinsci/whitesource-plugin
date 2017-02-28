@@ -69,6 +69,16 @@
             </roles>
         </developer>
         <developer>
+            <id>ArtiomPetrov</id>
+            <name>Artiom Petrov</name>
+            <email>artiom.petrov@whitesourcesoftware.com</email>
+            <organization>White Source</organization>
+            <url>http://www.whitesourcesoftware.com/</url>
+            <roles>
+                <role>Software Developer</role>
+            </roles>
+        </developer>
+        <developer>
             <id>sramakrishna</id>
             <name>Ramakrishna Sharvirala</name>
             <email>ramakrishna.sharvirala@gmail.com</email>

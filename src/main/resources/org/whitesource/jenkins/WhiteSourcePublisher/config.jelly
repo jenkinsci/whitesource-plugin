@@ -15,6 +15,9 @@
 			<j:invokeStatic var="selectedCheckPolicies" className="org.whitesource.jenkins.WssUtils" method="selectedCheckPolicies">
                 <j:arg value="${instance.jobCheckPolicies}" type="java.lang.String"/>
             </j:invokeStatic>
+            <j:invokeStatic var="selectedForceUpdate" className="org.whitesource.jenkins.WssUtils" method="selectedForceUpdate">
+                            <j:arg value="${instance.jobForceUpdate}" type="java.lang.String"/>
+                        </j:invokeStatic>
 
 			<j:choose>
                 <j:when test="${isFreeStyleMaven}">
@@ -37,6 +40,11 @@
                         <f:radio name="jobCheckPolicies" title="Check only new libraries" value="enableNew" checked="${selectedCheckPolicies == 'enableNew'}"/>
                         <f:radio name="jobCheckPolicies" title="Force check all libraries" value="enableAll" checked="${selectedCheckPolicies == 'enableAll'}"/>
                         <f:radio name="jobCheckPolicies" title="Disable" value="disable" checked="${selectedCheckPolicies == 'disable'}"/>
+                    </f:entry>
+                    <f:entry title="Force update" field="jobForceUpdate" help="/plugin/whitesource/help/help-jobForceUpdate.html">
+                             <f:radio name="jobForceUpdate" title="Use global settings" value="global" checked="${selectedForceUpdate == 'global'}"/>
+                             <f:radio name="jobForceUpdate" title="Force update" value="forceUpdate" checked="${selectedForceUpdate == 'forceUpdate'}"/>
+                             <f:radio name="jobForceUpdate" title="Update" value="jobUpdate" checked="${selectedForceUpdate == 'jobUpdate'}"/>
                     </f:entry>
                     <f:entry title="Override API token" field="jobApiToken" help="/plugin/whitesource/help/help-jobApiToken.html">
                         <f:textbox />
@@ -67,6 +75,11 @@
                        <f:radio name="jobCheckPolicies" title="Force check all libraries" value="enableAll" checked="${selectedCheckPolicies == 'enableAll'}"/>
                        <f:radio name="jobCheckPolicies" title="Disable" value="disable" checked="${selectedCheckPolicies == 'disable'}"/>
                     </f:entry>
+                    <f:entry title="Force update" field="jobForceUpdate" help="/plugin/whitesource/help/help-jobForceUpdate.html">
+                                                 <f:radio name="jobForceUpdate" title="Use global settings" value="global" checked="${selectedForceUpdate == 'global'}"/>
+                                                 <f:radio name="jobForceUpdate" title="Force update" value="forceUpdate" checked="${selectedForceUpdate == 'forceUpdate'}"/>
+                                                 <f:radio name="jobForceUpdate" title="Update" value="jobUpdate" checked="${selectedForceUpdate == 'jobUpdate'}"/>
+                                        </f:entry>
                     <f:entry title="Override API token" field="jobApiToken" help="/plugin/whitesource/help/help-jobApiToken.html">
                         <f:textbox />
                     </f:entry>

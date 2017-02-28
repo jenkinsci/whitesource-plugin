@@ -19,6 +19,9 @@
                    <f:radio name="checkPolicies" title="Force check all libraries" value="enableAll" checked="${selectedGlobalCheckPolicies == 'enableAll'}"/>
                    <f:radio name="checkPolicies" title="Disable" value="disable" checked="${selectedGlobalCheckPolicies == 'disable'}"/>
         </f:entry>
+        <f:entry title="Force update" field="globalForceUpdate" help="/plugin/whitesource/help/help-globalForceUpdate.html">
+                   <f:checkbox/>
+        </f:entry>
         <f:entry title="Fail on error" field="failOnError"
                 help="/plugin/whitesource/help/help-failOnError.html">
             <f:checkbox/>

@@ -97,6 +97,20 @@ public final class WssUtils {
     }
 
     /**
+     * <b>Important: </b> do not remove since it is used in jelly config files to determine job type.
+     *
+     * @param value
+     * @return
+     */
+    public static String selectedForceUpdate(String value) {
+        String selectedForceUpdate = "global";
+        if (StringUtils.isNotBlank(value)) {
+            selectedForceUpdate = value;
+        }
+        return selectedForceUpdate;
+    }
+
+    /**
      * <b>Important: </b> do not remove since it is used in jelly global files to determine job type.
      *
      * @param value
