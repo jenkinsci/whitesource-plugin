@@ -215,6 +215,9 @@ public class WhiteSourcePublisher extends Recorder {
                                 "All dependencies conform with open source policies.";
                         logger.println(message);
                         sendUpdate(apiToken, requesterEmail, productNameOrToken, projectInfos, service, logger);
+                        if (globalConfig.failOnError && hasRejections) {
+                            stopBuild(build, listener, "White Source Publisher failure");
+                        }
                     }
                 } else {
                     sendUpdate(apiToken, requesterEmail, productNameOrToken, projectInfos, service, logger);
