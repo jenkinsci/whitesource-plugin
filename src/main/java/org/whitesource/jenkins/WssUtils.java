@@ -19,6 +19,7 @@ package org.whitesource.jenkins;
 import hudson.maven.MavenModuleSet;
 import hudson.model.AbstractProject;
 import hudson.model.FreeStyleProject;
+import hudson.model.Job;
 import hudson.tasks.Builder;
 import hudson.tasks.Maven;
 import org.apache.commons.lang.StringUtils;
@@ -65,14 +66,14 @@ public final class WssUtils {
 	/**
 	 * <b>Important: </b> do not remove since it is used in jelly config files to determine job type.
 	 * 
-	 * @param project
+	 * @param job
 	 * @return True if this is a freestyle project that invoke a top maven target.
 	 */
-	public static boolean isFreeStyleMaven(AbstractProject<?,?> project) {
+	public static boolean isFreeStyleMaven(Job<?, ?> job) {
 		boolean freeStyle = false;
 		
-		if (project instanceof FreeStyleProject) {
-            Iterator<Builder> it = ((FreeStyleProject) project).getBuilders().iterator();
+		if (job instanceof FreeStyleProject) {
+            Iterator<Builder> it = ((FreeStyleProject) job).getBuilders().iterator();
             while(it.hasNext() && !freeStyle) {
                 freeStyle = it.next() instanceof Maven;
             }

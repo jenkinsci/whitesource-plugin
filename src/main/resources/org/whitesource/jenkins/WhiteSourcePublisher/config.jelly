@@ -10,57 +10,25 @@
 				<j:arg value="${it}" type="hudson.model.AbstractProject"/>
 			</j:invokeStatic>
 			<j:invokeStatic var="isFreeStyleMaven" className="org.whitesource.jenkins.WssUtils" method="isFreeStyleMaven">
-				<j:arg value="${it}" type="hudson.model.AbstractProject"/>
+				<j:arg value="${it}" type="hudson.model.Job"/>
 			</j:invokeStatic>
 			<j:invokeStatic var="selectedCheckPolicies" className="org.whitesource.jenkins.WssUtils" method="selectedCheckPolicies">
                 <j:arg value="${instance.jobCheckPolicies}" type="java.lang.String"/>
             </j:invokeStatic>
             <j:invokeStatic var="selectedForceUpdate" className="org.whitesource.jenkins.WssUtils" method="selectedForceUpdate">
-                            <j:arg value="${instance.jobForceUpdate}" type="java.lang.String"/>
-                        </j:invokeStatic>
+                <j:arg value="${instance.jobForceUpdate}" type="java.lang.String"/>
+            </j:invokeStatic>
+
+            <!--<j:import-->
+            <!--<j:include this is the same as choose????-->
+
 
 			<j:choose>
                 <j:when test="${isFreeStyleMaven}">
-                    <p>
-                        This specific job configuration is not supported yet.
-                        You can wither use a maven job or use the <a href="http://docs.whitesourcesoftware.com/display/serviceDocs/Maven+plugin">maven plugin</a> instead.
-                        <br/>
-                        For more information please check the <a href="http://docs.whitesourcesoftware.com/display/serviceDocs/Jenkins+plugin">online documentation</a>.
-                    </p>
+                    <j:import uri="../freeStyleMaven.jelly" inherit="true"/>
                 </j:when>
                 <j:when test="${isFreeStyle}">
-                    <f:entry title="Product name or token" field="product" help="/plugin/whitesource/help/help-product.html">
-                        <f:textbox />
-                    </f:entry>
-                    <f:entry title="Product version" field="productVersion" help="/plugin/whitesource/help/help-productVersion.html">
-                        <f:textbox />
-                    </f:entry>
-                    <f:entry title="Check policy compliance" field="jobCheckPolicies" help="/plugin/whitesource/help/help-jobCheckPolicies.html">
-                        <f:radio name="jobCheckPolicies" title="Use global settings" value="global" checked="${selectedCheckPolicies == 'global'}"/>
-                        <f:radio name="jobCheckPolicies" title="Check only new libraries" value="enableNew" checked="${selectedCheckPolicies == 'enableNew'}"/>
-                        <f:radio name="jobCheckPolicies" title="Force check all libraries" value="enableAll" checked="${selectedCheckPolicies == 'enableAll'}"/>
-                        <f:radio name="jobCheckPolicies" title="Disable" value="disable" checked="${selectedCheckPolicies == 'disable'}"/>
-                    </f:entry>
-                    <f:entry title="Force update" field="jobForceUpdate" help="/plugin/whitesource/help/help-jobForceUpdate.html">
-                             <f:radio name="jobForceUpdate" title="Use global settings" value="global" checked="${selectedForceUpdate == 'global'}"/>
-                             <f:radio name="jobForceUpdate" title="Force update" value="forceUpdate" checked="${selectedForceUpdate == 'forceUpdate'}"/>
-                             <f:radio name="jobForceUpdate" title="Update" value="jobUpdate" checked="${selectedForceUpdate == 'jobUpdate'}"/>
-                    </f:entry>
-                    <f:entry title="Override API token" field="jobApiToken" help="/plugin/whitesource/help/help-jobApiToken.html">
-                        <f:textbox />
-                    </f:entry>
-                    <f:entry title="Project token" field="projectToken" help="/plugin/whitesource/help/help-projectToken.html">
-                        <f:textbox />
-                    </f:entry>
-                    <f:entry title="Requester email" field="requesterEmail" help="/plugin/whitesource/help/help-requesterEmail.html">
-                        <f:textbox />
-                    </f:entry>
-                    <f:entry title="Includes" field="libIncludes" help="/plugin/whitesource/help/help-libIncludes.html">
-                        <f:expandableTextbox />
-                    </f:entry>
-                    <f:entry title="Excludes" field="libExcludes" help="/plugin/whitesource/help/help-libExcludes.html">
-                        <f:expandableTextbox />
-                    </f:entry>
+                    <j:import uri="../freeStyle.jelly" inherit="true"/>
                 </j:when>
                 <j:when test="${isMaven}">
                     <f:entry title="Product name or token" field="product" help="/plugin/whitesource/help/help-product.html">

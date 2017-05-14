@@ -24,6 +24,7 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
+import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -40,6 +41,7 @@ import org.whitesource.agent.report.PolicyCheckReport;
 import org.whitesource.jenkins.extractor.generic.GenericOssInfoExtractor;
 import org.whitesource.jenkins.extractor.maven.MavenOssInfoExtractor;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
@@ -50,7 +52,7 @@ import java.util.Collection;
  * @author ramakrishna
  * @author Edo.Shor
  */
-public class WhiteSourcePublisher extends Recorder {
+public class WhiteSourcePublisher extends Recorder implements SimpleBuildStep {
 
     /* --- Members --- */
 
@@ -125,24 +127,23 @@ public class WhiteSourcePublisher extends Recorder {
     /* --- Interface implementation methods --- */
 
     @Override
-    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener)
-            throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         PrintStream logger = listener.getLogger();
 
         logger.println("Updating White Source");
 
-        Result buildResult = build.getResult();
+        Result buildResult = run.getResult();
         if (buildResult == null) {
             throw new RuntimeException("Failed to acquire build result");
         }
         if (buildResult.isWorseThan(Result.SUCCESS)) {
             logger.println("Build failed. Skipping update.");
-            return true;
+            return;
         }
 
-        if (WssUtils.isFreeStyleMaven(build.getProject())) {
+        if (WssUtils.isFreeStyleMaven(run.getParent())) {
             logger.println("Free style maven jobs are not supported in this version. See plugin documentation.");
-            return true;
+            return;
         }
 
         DescriptorImpl globalConfig = (DescriptorImpl) getDescriptor();
@@ -154,7 +155,7 @@ public class WhiteSourcePublisher extends Recorder {
         }
         if (StringUtils.isBlank(apiToken)) {
             logger.println("No API token configured. Skipping update.");
-            return true;
+            return;
         }
 
         // should we check policies ?
@@ -180,20 +181,20 @@ public class WhiteSourcePublisher extends Recorder {
         logger.println("Collecting OSS usage information");
         Collection<AgentProjectInfo> projectInfos;
         String productNameOrToken = product;
-        if ((build instanceof MavenModuleSetBuild)) {
+        if (run instanceof MavenModuleSetBuild) {
             MavenOssInfoExtractor extractor = new MavenOssInfoExtractor(modulesToInclude,
-                    modulesToExclude, (MavenModuleSetBuild) build, listener, mavenProjectToken, moduleTokens, ignorePomModules);
+                    modulesToExclude, (MavenModuleSetBuild) run, listener, mavenProjectToken, moduleTokens, ignorePomModules);
             projectInfos = extractor.extract();
             if (StringUtils.isBlank(product)) {
                 productNameOrToken = extractor.getTopMostProjectName();
             }
-        } else if ((build instanceof FreeStyleBuild)) {
+        } else if ((run instanceof FreeStyleBuild)) {
             GenericOssInfoExtractor extractor = new GenericOssInfoExtractor(libIncludes,
-                    libExcludes, build, listener, projectToken);
+                    libExcludes, run, listener, projectToken, workspace);
             projectInfos = extractor.extract();
         } else {
-            stopBuild(build, listener, "Unrecognized build type " + build.getClass().getName());
-            return true;
+            stopBuild(run, listener, "Unrecognized build type " + run.getClass().getName());
+            return;
         }
 
         // send to white source
@@ -205,10 +206,10 @@ public class WhiteSourcePublisher extends Recorder {
                 if (shouldCheckPolicies) {
                     logger.println("Checking policies");
                     CheckPolicyComplianceResult result = service.checkPolicyCompliance(apiToken, productNameOrToken ,productVersion, projectInfos, checkAllLibraries);
-                    policyCheckReport(result, build, listener);
+                    policyCheckReport(result, run, listener);
                     boolean hasRejections = result.hasRejections();
                     if (hasRejections && !isForceUpdate) {
-                        stopBuild(build, listener, "Open source rejected by organization policies.");
+                        stopBuild(run, listener, "Open source rejected by organization policies.");
                     } else {
                         String message = hasRejections ? "Some dependencies violate open source policies, however all" +
                                 " were force updated to organization inventory." :
@@ -220,17 +221,17 @@ public class WhiteSourcePublisher extends Recorder {
                     sendUpdate(apiToken, requesterEmail, productNameOrToken, projectInfos, service, logger);
                 }
             } catch (WssServiceException e) {
-                stopBuildOnError(build, globalConfig.failOnError, listener, e);
+                stopBuildOnError(run, globalConfig.failOnError, listener, e);
             } catch (IOException e) {
-                stopBuildOnError(build, globalConfig.failOnError, listener, e);
+                stopBuildOnError(run, globalConfig.failOnError, listener, e);
             } catch (RuntimeException e) {
-                stopBuildOnError(build, globalConfig.failOnError, listener, e);
+                stopBuildOnError(run, globalConfig.failOnError, listener, e);
             } finally {
                 service.shutdown();
             }
         }
 
-        return true;
+        return;
     }
 
     /* --- Public methods --- */
@@ -297,16 +298,16 @@ public class WhiteSourcePublisher extends Recorder {
                (hudsonInstance != null && hudsonInstance.proxy != null);
     }
 
-    private void policyCheckReport(CheckPolicyComplianceResult result, AbstractBuild build, BuildListener listener) //CheckPoliciesResult
+    private void policyCheckReport(CheckPolicyComplianceResult result, Run<?, ?> run, TaskListener listener) //CheckPoliciesResult
             throws IOException, InterruptedException {
         listener.getLogger().println("Generating policy check report");
 
         PolicyCheckReport report = new PolicyCheckReport(result,
-                build.getProject().getName(),
-                Integer.toString(build.getNumber()));
-        report.generate(build.getRootDir(), false);
+                run.getParent().getName(),
+                Integer.toString(run.getNumber()));
+        report.generate(run.getRootDir(), false);
 
-        build.addAction(new PolicyCheckReportAction(build));
+                run.addAction(new PolicyCheckReportAction(run));
     }
 
     private void sendUpdate(String orgToken,
@@ -320,18 +321,18 @@ public class WhiteSourcePublisher extends Recorder {
         logUpdateResult(updateResult, logger);
     }
 
-    private void stopBuild(AbstractBuild build, BuildListener listener, String message) {
+    private void stopBuild(Run<?, ?> run, TaskListener listener, String message) {
         listener.error(message);
-        build.setResult(Result.FAILURE);
+        run.setResult(Result.FAILURE);
     }
 
-    private void stopBuildOnError(AbstractBuild build, boolean failOnError, BuildListener listener, Exception e) {
+    private void stopBuildOnError(Run<?, ?> run, boolean failOnError, TaskListener listener, Exception e) {
         if (e instanceof IOException) {
             Util.displayIOException((IOException) e, listener);
         }
         e.printStackTrace(listener.fatalError("White Source Publisher failure"));
         if (failOnError) {
-            build.setResult(Result.FAILURE);
+            run.setResult(Result.FAILURE);
         }
     }
 

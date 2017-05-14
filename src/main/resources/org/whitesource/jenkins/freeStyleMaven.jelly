@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core">
+    <p>
+        This specific job configuration is not supported yet.
+        You can either use a maven job or use the <a href="http://docs.whitesourcesoftware.com/display/serviceDocs/Maven+plugin">maven plugin</a> instead.
+        <br/>
+        For more information please check the <a href="http://docs.whitesourcesoftware.com/display/serviceDocs/Jenkins+plugin">online documentation</a>.
+    </p>
+</j:jelly>

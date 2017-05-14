@@ -1,8 +1,8 @@
 package org.whitesource.jenkins.extractor.generic;
 
 import hudson.FilePath;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.whitesource.agent.api.model.AgentProjectInfo;
@@ -35,16 +35,18 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
     /* --- Members --- */
 
     private final String projectToken;
+    private final FilePath workspace;
 
     /* --- Constructors --- */
 
     public GenericOssInfoExtractor(String includes,
                                    String excludes,
-                                   AbstractBuild build,
-                                   BuildListener listener,
-                                   String projectToken) {
-        super(includes, excludes, build, listener);
+                                   Run<?, ?> run,
+                                   TaskListener listener,
+                                   String projectToken, FilePath workspace) {
+        super(includes, excludes, run, listener);
         this.projectToken = projectToken;
+        this.workspace = workspace;
     }
 
     /* --- Concrete implementation methods --- */
@@ -62,21 +64,20 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
         LibFolderScanner libScanner = new LibFolderScanner(includes, excludes, listener);
         AgentProjectInfo projectInfo = new AgentProjectInfo();
         if (StringUtils.isBlank(projectToken)) {
-            projectInfo.setCoordinates(new Coordinates(null, build.getProject().getName(), "build #" + build.getNumber()));
+            projectInfo.setCoordinates(new Coordinates(null, run.getParent().getName(), "build #" + run.getNumber()));
         } else {
             projectInfo.setProjectToken(projectToken);
         }
 
-        FilePath buildWorkspace = build.getWorkspace();
-        if (buildWorkspace == null) {
+        if (workspace == null) {
             throw new RuntimeException("Failed to acquire the Build's workspace");
         }
         Collection<DependencyInfo> dependencies = projectInfo.getDependencies();
         if (dependencies == null) {
-            dependencies = new ArrayList<DependencyInfo>();
+            dependencies = new ArrayList<>();
             projectInfo.setDependencies((List<DependencyInfo>) dependencies);
         }
-        dependencies.addAll(buildWorkspace.act(libScanner));
+        dependencies.addAll(workspace.act(libScanner));
         projectInfos.add(projectInfo);
 
         return projectInfos;

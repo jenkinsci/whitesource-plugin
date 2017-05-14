@@ -2,10 +2,9 @@ package org.whitesource.jenkins.extractor.maven;
 
 import hudson.maven.MavenBuild;
 import hudson.maven.MavenModule;
-import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.maven.reporters.MavenArtifactRecord;
-import hudson.model.BuildListener;
+import hudson.model.TaskListener;
 import org.apache.commons.lang.StringUtils;
 import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.agent.api.model.Coordinates;
@@ -39,7 +38,7 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
     public MavenOssInfoExtractor(String includes,
                                  String excludes,
                                  MavenModuleSetBuild mavenModuleSetBuild,
-                                 BuildListener listener,
+                                 TaskListener listener,
                                  String mavenProjectToken,
                                  String moduleTokens,
                                  boolean ignorePomModules) {

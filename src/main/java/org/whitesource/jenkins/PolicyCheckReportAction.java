@@ -24,17 +24,17 @@ public class PolicyCheckReportAction implements ProminentProjectAction {
 
     /* --- Members --- */
 
-    private final AbstractBuild<?, ?> build;
+    private final Run<?, ?> run;
 
     /* --- Constructors --- */
 
     /**
      * Constructor
      *
-     * @param build
+     * @param run
      */
-    public PolicyCheckReportAction(AbstractBuild<?, ?> build) {
-        this.build = build;
+    public PolicyCheckReportAction(Run<?, ?> run) {
+        this.run = run;
     }
 
     /* --- Interface implementation methods --- */
@@ -61,7 +61,7 @@ public class PolicyCheckReportAction implements ProminentProjectAction {
      * Serves HTML reports.
      */
     public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-        DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(getBuildArchiveDir(this.build)), DISPLAY_NAME, ICON_PATH, false);
+        DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(getBuildArchiveDir(this.run)), DISPLAY_NAME, ICON_PATH, false);
         dbs.setIndexFileName("index.html");
         dbs.generateResponse(req, rsp, this);
     }
@@ -69,6 +69,6 @@ public class PolicyCheckReportAction implements ProminentProjectAction {
     /* --- Private methods --- */
 
     private File dir() {
-        return getBuildArchiveDir(this.build);
+        return getBuildArchiveDir(this.run);
     }
 }

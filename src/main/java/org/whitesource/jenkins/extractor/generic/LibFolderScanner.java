@@ -17,7 +17,7 @@
 package org.whitesource.jenkins.extractor.generic;
 
 import hudson.FilePath;
-import hudson.model.BuildListener;
+import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
 import jenkins.MasterToSlaveFileCallable;
 import org.apache.commons.lang.StringUtils;
@@ -47,7 +47,7 @@ public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<Depen
 	
 	private List<String> libExcludes;
 	
-	private BuildListener listener;
+	private TaskListener listener;
 	
 	private Collection<DependencyInfo> dependencies;
 	
@@ -55,12 +55,11 @@ public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<Depen
 
     /**
      * Constructor
-     *
-     * @param libIncludes Ant style pattern for files to include.
+     *  @param libIncludes Ant style pattern for files to include.
      * @param libExcludes Ant style pattern for files to exclude.
-     * @param listener
-     */
-    public LibFolderScanner(List<String> libIncludes, List<String> libExcludes, BuildListener listener) {
+	 * @param listener
+	 */
+    public LibFolderScanner(List<String> libIncludes, List<String> libExcludes, TaskListener listener) {
         this.libIncludes = libIncludes;
         this.libExcludes = libExcludes;
         this.listener = listener;
