@@ -172,7 +172,7 @@ public class WhiteSourceUpdateStep extends Step {
 
         @Override
         public String getFunctionName() {
-            return "whitesource2";
+            return "whitesource";
         }
 
         @Override
