@@ -67,7 +67,6 @@ public class WhiteSourceStep {
 
     public WhiteSourceStep(WhiteSourcePublisher publisher, WhiteSourceDescriptor globalConfig) {
         this(globalConfig, publisher.getJobApiToken(), publisher.getJobForceUpdate(), publisher.getJobCheckPolicies());
-        this.jobApiToken = publisher.getJobApiToken();
         this.product = publisher.getProduct();
         this.productVersion = publisher.getProductVersion();
         this.projectToken = publisher.getProjectToken();
@@ -107,7 +106,7 @@ public class WhiteSourceStep {
                 if (hasRejections && !isForceUpdate) {
                     message = "Open source rejected by organization policies.";
                     if (globalConfig.isFailOnError()) {
-                        stopBuild(run, listener, "Open source rejected by organization policies.");
+                        stopBuild(run, listener, message);
                     } else {
                         logger.println(message);
                     }
@@ -133,7 +132,7 @@ public class WhiteSourceStep {
         }
     }
 
-    public Collection<AgentProjectInfo> getProjectInfos(Run<?, ?> run, TaskListener listener, FilePath workspace, boolean isPipelineJob) throws IOException, InterruptedException {
+    public Collection<AgentProjectInfo> getProjectInfos(Run<?, ?> run, TaskListener listener, FilePath workspace, boolean isFreeStyleStep) throws IOException, InterruptedException {
         PrintStream logger = listener.getLogger();
 
         // collect OSS usage information
@@ -148,7 +147,7 @@ public class WhiteSourceStep {
             if (StringUtils.isBlank(product)) {
                 productNameOrToken = extractor.getTopMostProjectName();
             }
-        } else if (run instanceof FreeStyleBuild || isPipelineJob) {
+        } else if (run instanceof FreeStyleBuild || isFreeStyleStep) {
             GenericOssInfoExtractor extractor = new GenericOssInfoExtractor(libIncludes, libExcludes, run, listener, projectToken, workspace);
             projectInfos = extractor.extract();
         }
