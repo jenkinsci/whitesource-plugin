@@ -16,51 +16,41 @@
 
 package org.whitesource.jenkins;
 
-import hudson.*;
-import hudson.maven.MavenModuleSetBuild;
-import hudson.model.*;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.model.AbstractProject;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-import org.whitesource.agent.api.dispatch.CheckPolicyComplianceResult;
-import org.whitesource.agent.api.dispatch.UpdateInventoryResult;
 import org.whitesource.agent.api.model.AgentProjectInfo;
-import org.whitesource.agent.client.WhitesourceService;
-import org.whitesource.agent.client.WssServiceException;
-import org.whitesource.agent.report.PolicyCheckReport;
-import org.whitesource.jenkins.extractor.generic.GenericOssInfoExtractor;
-import org.whitesource.jenkins.extractor.maven.MavenOssInfoExtractor;
+import org.whitesource.jenkins.model.WhiteSourceDescriptor;
+import org.whitesource.jenkins.model.WhiteSourceStep;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Collection;
+
+import static org.whitesource.jenkins.Constants.*;
 
 /**
  * @author ramakrishna
  * @author Edo.Shor
  */
-public class WhiteSourcePublisher extends Recorder implements SimpleBuildStep {
+public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
     /* --- Members --- */
-
-    public static final String GLOBAL = "global";
-    public static final String ENABLE_NEW = "enableNew";
-    public static final String ENABLE_ALL = "enableAll";
-    public static final String JOB_FORCE_UPDATE = "forceUpdate";
-    public static final int DEFAULT_TIMEOUT = 60;
 
     private final String jobCheckPolicies;
 
@@ -129,8 +119,7 @@ public class WhiteSourcePublisher extends Recorder implements SimpleBuildStep {
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         PrintStream logger = listener.getLogger();
-
-        logger.println("Updating White Source");
+        logger.println(UPDATING_WHITESOURCE);
 
         Result buildResult = run.getResult();
         if (buildResult == null) {
@@ -142,210 +131,32 @@ public class WhiteSourcePublisher extends Recorder implements SimpleBuildStep {
         }
 
         if (WssUtils.isFreeStyleMaven(run.getParent())) {
-            logger.println("Free style maven jobs are not supported in this version. See plugin documentation.");
+            logger.println(UNSUPPORTED_FREESTYLE_MAVEN_JOB);
             return;
         }
-
-        DescriptorImpl globalConfig = (DescriptorImpl) getDescriptor();
+        WhiteSourceStep whiteSourceStep = new WhiteSourceStep(this, new WhiteSourceDescriptor((DescriptorImpl) getDescriptor()));
 
         // make sure we have an organization token
-        String apiToken = globalConfig.apiToken;
-        if (StringUtils.isNotBlank(jobApiToken)) {
-            apiToken = jobApiToken;
-        }
-        if (StringUtils.isBlank(apiToken)) {
-            logger.println("No API token configured. Skipping update.");
+        if (StringUtils.isBlank(whiteSourceStep.getJobApiToken())) {
+            logger.println(INVALID_API_TOKEN);
             return;
         }
 
-        // should we check policies ?
-        boolean shouldCheckPolicies;
-        boolean checkAllLibraries;
-        if (StringUtils.isBlank(jobCheckPolicies) || GLOBAL.equals(jobCheckPolicies)) {
-            String checkPolicies = globalConfig.checkPolicies;
-            shouldCheckPolicies = ENABLE_NEW.equals(checkPolicies) || ENABLE_ALL.equals(checkPolicies);
-            checkAllLibraries = ENABLE_ALL.equals(checkPolicies);
-        } else {
-            shouldCheckPolicies = ENABLE_NEW.equals(jobCheckPolicies) || ENABLE_ALL.equals(jobCheckPolicies);
-            checkAllLibraries = ENABLE_ALL.equals(jobCheckPolicies);
-        }
-
-        boolean isForceUpdate;
-        if (StringUtils.isBlank(jobForceUpdate) || GLOBAL.equals(jobForceUpdate)) {
-            isForceUpdate = globalConfig.globalForceUpdate;
-        } else {
-            isForceUpdate = JOB_FORCE_UPDATE.equals(jobForceUpdate);
-        }
-
-        // collect OSS usage information
-        logger.println("Collecting OSS usage information");
-        Collection<AgentProjectInfo> projectInfos;
-        String productNameOrToken = product;
-        if (run instanceof MavenModuleSetBuild) {
-            MavenOssInfoExtractor extractor = new MavenOssInfoExtractor(modulesToInclude,
-                    modulesToExclude, (MavenModuleSetBuild) run, listener, mavenProjectToken, moduleTokens, ignorePomModules);
-            projectInfos = extractor.extract();
-            if (StringUtils.isBlank(product)) {
-                productNameOrToken = extractor.getTopMostProjectName();
-            }
-        } else if ((run instanceof FreeStyleBuild)) {
-            GenericOssInfoExtractor extractor = new GenericOssInfoExtractor(libIncludes,
-                    libExcludes, run, listener, projectToken, workspace);
-            projectInfos = extractor.extract();
-        } else {
-            stopBuild(run, listener, "Unrecognized build type " + run.getClass().getName());
+        Collection<AgentProjectInfo> projectInfos = whiteSourceStep.getProjectInfos(run, listener, workspace, false);
+        if (projectInfos == null) {
+            whiteSourceStep.stopBuild(run, listener, "Unrecognized build type " + run.getClass().getName());
             return;
-        }
-
-        // send to white source
-        if (CollectionUtils.isEmpty(projectInfos)) {
-            logger.println("No open source information found.");
+        } else if (projectInfos.isEmpty()){
+            logger.println(OSS_INFO_NOT_FOUND);
         } else {
-            WhitesourceService service = createServiceClient(globalConfig);
-            try {
-                if (shouldCheckPolicies) {
-                    logger.println("Checking policies");
-                    CheckPolicyComplianceResult result = service.checkPolicyCompliance(apiToken, productNameOrToken ,productVersion, projectInfos, checkAllLibraries);
-                    policyCheckReport(result, run, listener);
-                    boolean hasRejections = result.hasRejections();
-                    if (hasRejections && !isForceUpdate) {
-                        stopBuild(run, listener, "Open source rejected by organization policies.");
-                    } else {
-                        String message = hasRejections ? "Some dependencies violate open source policies, however all" +
-                                " were force updated to organization inventory." :
-                                "All dependencies conform with open source policies.";
-                        logger.println(message);
-                        sendUpdate(apiToken, requesterEmail, productNameOrToken, projectInfos, service, logger);
-                        if (globalConfig.failOnError && hasRejections) {
-                            stopBuild(build, listener, "White Source Publisher failure");
-                        }
-                    }
-                } else {
-                    sendUpdate(apiToken, requesterEmail, productNameOrToken, projectInfos, service, logger);
-                }
-            } catch (WssServiceException e) {
-                stopBuildOnError(run, globalConfig.failOnError, listener, e);
-            } catch (IOException e) {
-                stopBuildOnError(run, globalConfig.failOnError, listener, e);
-            } catch (RuntimeException e) {
-                stopBuildOnError(run, globalConfig.failOnError, listener, e);
-            } finally {
-                service.shutdown();
-            }
+            whiteSourceStep.update(run, listener, projectInfos);
         }
-
-        return;
     }
 
     /* --- Public methods --- */
 
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
-    }
-
-    /* --- Private methods --- */
-
-    private WhitesourceService createServiceClient(DescriptorImpl globalConfig) {
-        String url = globalConfig.serviceUrl;
-        if (StringUtils.isNotBlank(url)){
-            if (!url.endsWith("/")) {
-                url += "/";
-            }
-            url += "agent";
-        }
-        int connectionTimeout = DEFAULT_TIMEOUT;
-        if (NumberUtils.isNumber(globalConfig.connectionTimeout)) {
-            int connectionTimeoutInteger = Integer.parseInt(globalConfig.connectionTimeout);
-            connectionTimeout = connectionTimeoutInteger > 0 ? connectionTimeoutInteger : connectionTimeout;
-        }
-        boolean proxyConfigured = isProxyConfigured(globalConfig);
-        WhitesourceService service = new WhitesourceService(Constants.AGENT_TYPE, Constants.AGENT_VERSION, url,
-                proxyConfigured, connectionTimeout);
-
-        if (proxyConfigured) {
-            String host, userName, password;
-            int port;
-            if (globalConfig.overrideProxySettings) {
-                host = globalConfig.server;
-                port = StringUtils.isBlank(globalConfig.port) ? 0 : Integer.parseInt(globalConfig.port);
-                userName = globalConfig.userName;
-                password = globalConfig.password;
-            }
-            else { // proxy is configured in jenkins global settings
-                Hudson hudsonInstance = Hudson.getInstance();
-                if (hudsonInstance == null) {
-                    throw new RuntimeException("Failed to acquire Hudson Instance");
-                }
-                final ProxyConfiguration proxy = hudsonInstance.proxy;
-                host = proxy.name;
-                port = proxy.port;
-                userName = proxy.getUserName();
-                password = proxy.getPassword();
-            }
-            // ditch protocol if present
-            try {
-                URL tmpUrl = new URL(host);
-                host = tmpUrl.getHost();
-            } catch (MalformedURLException e) {
-                // nothing to do here
-            }
-            service.getClient().setProxy(host, port, userName, password);
-        }
-
-        return service;
-    }
-
-    private boolean isProxyConfigured(DescriptorImpl globalConfig) {
-        Hudson hudsonInstance = Hudson.getInstance();
-        return globalConfig.overrideProxySettings ||
-               (hudsonInstance != null && hudsonInstance.proxy != null);
-    }
-
-    private void policyCheckReport(CheckPolicyComplianceResult result, Run<?, ?> run, TaskListener listener) //CheckPoliciesResult
-            throws IOException, InterruptedException {
-        listener.getLogger().println("Generating policy check report");
-
-        PolicyCheckReport report = new PolicyCheckReport(result,
-                run.getParent().getName(),
-                Integer.toString(run.getNumber()));
-        report.generate(run.getRootDir(), false);
-
-                run.addAction(new PolicyCheckReportAction(run));
-    }
-
-    private void sendUpdate(String orgToken,
-                            String requesterEmail,
-                            String productNameOrToken,
-                            Collection<AgentProjectInfo> projectInfos,
-                            WhitesourceService service,
-                            PrintStream logger) throws WssServiceException {
-        logger.println("Sending to White Source");
-        UpdateInventoryResult updateResult = service.update(orgToken, requesterEmail, productNameOrToken, productVersion, projectInfos);
-        logUpdateResult(updateResult, logger);
-    }
-
-    private void stopBuild(Run<?, ?> run, TaskListener listener, String message) {
-        listener.error(message);
-        run.setResult(Result.FAILURE);
-    }
-
-    private void stopBuildOnError(Run<?, ?> run, boolean failOnError, TaskListener listener, Exception e) {
-        if (e instanceof IOException) {
-            Util.displayIOException((IOException) e, listener);
-        }
-        e.printStackTrace(listener.fatalError("White Source Publisher failure"));
-        if (failOnError) {
-            run.setResult(Result.FAILURE);
-        }
-    }
-
-    private void logUpdateResult(UpdateInventoryResult result, PrintStream logger) {
-        logger.println("White Source update results: ");
-        logger.println("White Source organization: " + result.getOrganization());
-        logger.println(result.getCreatedProjects().size() + " Newly created projects:");
-        logger.println(StringUtils.join(result.getCreatedProjects(), ","));
-        logger.println(result.getUpdatedProjects().size() + " existing projects were updated:");
-        logger.println(StringUtils.join(result.getUpdatedProjects(), ","));
     }
 
     /* --- Nested classes --- */
@@ -377,7 +188,7 @@ public class WhiteSourcePublisher extends Recorder implements SimpleBuildStep {
 
         private String connectionTimeout;
 
-        /* --- Constructors--- */
+        /* --- Constructor --- */
 
         /**
          * Default constructor
@@ -406,24 +217,24 @@ public class WhiteSourcePublisher extends Recorder implements SimpleBuildStep {
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-            apiToken = json.getString("apiToken");
-            serviceUrl  = json.getString("serviceUrl");
-            checkPolicies = json.getString("checkPolicies");
-            failOnError = json.getBoolean("failOnError");
-            globalForceUpdate = json.getBoolean("globalForceUpdate");
+            apiToken = json.getString(API_TOKEN);
+            serviceUrl  = json.getString(SERVICE_URL);
+            checkPolicies = json.getString(CHECK_POLICIES);
+            failOnError = json.getBoolean(FAIL_ON_ERROR);
+            globalForceUpdate = json.getBoolean(GLOBAL_FORCE_UPDATE);
 
-            JSONObject proxySettings = (JSONObject) json.get("proxySettings");
+            JSONObject proxySettings = (JSONObject) json.get(PROXY_SETTINGS);
             if (proxySettings == null) {
                 overrideProxySettings = false;
             }
             else {
                 overrideProxySettings = true;
-                server = proxySettings.getString("server");
-                port = proxySettings.getString("port");
-                userName = proxySettings.getString("userName");
-                password = proxySettings.getString("password");
+                server = proxySettings.getString(SERVER);
+                port = proxySettings.getString(PORT);
+                userName = proxySettings.getString(USER_NAME);
+                password = proxySettings.getString(PASSWORD);
             }
-            connectionTimeout =json.getString("connectionTimeout");
+            connectionTimeout = json.getString(CONNECTION_TIMEOUT);
             save();
 
             return super.configure(req, json);

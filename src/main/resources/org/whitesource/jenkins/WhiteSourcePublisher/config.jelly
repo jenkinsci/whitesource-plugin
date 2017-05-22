@@ -19,10 +19,6 @@
                 <j:arg value="${instance.jobForceUpdate}" type="java.lang.String"/>
             </j:invokeStatic>
 
-            <!--<j:import-->
-            <!--<j:include this is the same as choose????-->
-
-
 			<j:choose>
                 <j:when test="${isFreeStyleMaven}">
                     <j:import uri="../freeStyleMaven.jelly" inherit="true"/>

@@ -53,7 +53,7 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
 
     @Override
     public Collection<AgentProjectInfo> extract() throws InterruptedException, IOException{
-        Collection<AgentProjectInfo> projectInfos = new ArrayList<AgentProjectInfo>();
+        Collection<AgentProjectInfo> projectInfos = new ArrayList<>();
 
         if (CollectionUtils.isEmpty(includes)) {
             for (String extension : DEFAULT_SCAN_EXTENSIONS) {

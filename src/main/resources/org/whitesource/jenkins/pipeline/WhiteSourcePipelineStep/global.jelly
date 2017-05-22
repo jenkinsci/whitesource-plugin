@@ -5,7 +5,7 @@
                     <j:arg value="${instance.checkPolicies}" type="java.lang.String"/>
         </j:invokeStatic>
 
-      <f:section title="White Source Publisher">
+      <f:section title="White Source Pipeline">
         <f:entry title="API token" field="apiToken"
                 help="/plugin/whitesource/help/help-apiToken.html">
             <f:textbox/>
@@ -14,10 +14,10 @@
                 help="/plugin/whitesource/help/help-serviceUrl.html">
             <f:textbox/>
         </f:entry>
-        <f:entry title="Check policy compliance" field="checkPolicies" help="/plugin/whitesource/help/help-checkPolicies.html" >
-                   <f:radio name="checkPolicies" title="Check only new libraries" value="enableNew" checked="${selectedGlobalCheckPolicies == 'enableNew'}"/>
-                   <f:radio name="checkPolicies" title="Force check all libraries" value="enableAll" checked="${selectedGlobalCheckPolicies == 'enableAll'}"/>
-                   <f:radio name="checkPolicies" title="Disable" value="disable" checked="${selectedGlobalCheckPolicies == 'disable'}"/>
+        <f:entry title="Check policy compliance" field="pipelineCheckPolicies" help="/plugin/whitesource/help/help-checkPolicies.html" >
+                   <f:radio name="pipelineCheckPolicies" title="Check only new libraries" value="enableNew" checked="${selectedGlobalCheckPolicies == 'enableNew'}"/>
+                   <f:radio name="pipelineCheckPolicies" title="Force check all libraries" value="enableAll" checked="${selectedGlobalCheckPolicies == 'enableAll'}"/>
+                   <f:radio name="pipelineCheckPolicies" title="Disable" value="disable" checked="${selectedGlobalCheckPolicies == 'disable'}"/>
         </f:entry>
         <f:entry title="Force update" field="globalForceUpdate" help="/plugin/whitesource/help/help-globalForceUpdate.html">
                    <f:checkbox/>

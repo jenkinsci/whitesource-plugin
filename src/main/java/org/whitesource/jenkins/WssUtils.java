@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 
 /**
  * Utility methods used throughout the plugin.
- * 
+ *
  * @author c_rsharv
  * @author Edo.Shor
  */
@@ -37,10 +37,18 @@ public final class WssUtils {
 
     /* --- Static members --- */
 
-        private static final Pattern PARAM_LIST_SPLIT_PATTERN = Pattern.compile(",|$| ", Pattern.MULTILINE);
-        private static final Pattern KEY_VALUE_SPLIT_PATTERN = Pattern.compile("=");
+    private static final Pattern PARAM_LIST_SPLIT_PATTERN = Pattern.compile(",|$| ", Pattern.MULTILINE);
+    private static final Pattern KEY_VALUE_SPLIT_PATTERN = Pattern.compile("=");
 
-	
+    /* --- Constructors --- */
+
+    /**
+     * Private constructor
+     */
+    private WssUtils() {
+        // avoid instantiation
+    }
+
 	/* --- Static methods --- */
 
     /**
@@ -49,38 +57,38 @@ public final class WssUtils {
      * @param project
      * @return True if this is a maven project invoking top maven target.
      */
-    public static boolean isMaven(AbstractProject<?,?> project) {
+    public static boolean isMaven(AbstractProject<?, ?> project) {
         return project instanceof MavenModuleSet;
     }
 
-	/**
-	 * <b>Important: </b> do not remove since it is used in jelly config files to determine job type.
-	 * 
-	 * @param project
-	 * @return True if this is a freestyle project not invoking top maven target.
-	 */
-	public static boolean isFreeStyle(AbstractProject<?,?> project) {
-		return project instanceof FreeStyleProject && !isFreeStyleMaven(project);
-	}
+    /**
+     * <b>Important: </b> do not remove since it is used in jelly config files to determine job type.
+     *
+     * @param project
+     * @return True if this is a freestyle project not invoking top maven target.
+     */
+    public static boolean isFreeStyle(AbstractProject<?, ?> project) {
+        return project instanceof FreeStyleProject && !isFreeStyleMaven(project);
+    }
 
-	/**
-	 * <b>Important: </b> do not remove since it is used in jelly config files to determine job type.
-	 * 
-	 * @param job
-	 * @return True if this is a freestyle project that invoke a top maven target.
-	 */
-	public static boolean isFreeStyleMaven(Job<?, ?> job) {
-		boolean freeStyle = false;
-		
-		if (job instanceof FreeStyleProject) {
+    /**
+     * <b>Important: </b> do not remove since it is used in jelly config files to determine job type.
+     *
+     * @param job
+     * @return True if this is a freestyle project that invoke a top maven target.
+     */
+    public static boolean isFreeStyleMaven(Job<?, ?> job) {
+        boolean freeStyle = false;
+
+        if (job instanceof FreeStyleProject) {
             Iterator<Builder> it = ((FreeStyleProject) job).getBuilders().iterator();
-            while(it.hasNext() && !freeStyle) {
+            while (it.hasNext() && !freeStyle) {
                 freeStyle = it.next() instanceof Maven;
             }
-		}
-		
-		return freeStyle;
-	}
+        }
+
+        return freeStyle;
+    }
 
     /**
      * <b>Important: </b> do not remove since it is used in jelly config files to determine job type.
@@ -127,48 +135,35 @@ public final class WssUtils {
     }
 
     public static List<String> splitParameters(String paramList) {
-            List<String> params = new ArrayList<String>();
+        List<String> params = new ArrayList<String>();
 
-            if (paramList != null) {
-                String[] split = PARAM_LIST_SPLIT_PATTERN.split(paramList);
-                if (split != null) {
-                    for (String param : split) {
-                        if (StringUtils.isNotBlank(param)) {
-                            params.add(param.trim());
-                        }
+        if (paramList != null) {
+            String[] split = PARAM_LIST_SPLIT_PATTERN.split(paramList);
+            if (split != null) {
+                for (String param : split) {
+                    if (StringUtils.isNotBlank(param)) {
+                        params.add(param.trim());
                     }
                 }
             }
-
-            return params;
         }
 
-        public static Map<String, String> splitParametersMap(String paramList) {
-            Map<String, String> params = new HashMap<String, String>();
+        return params;
+    }
 
-            List<String> kvps = splitParameters(paramList);
-            if (kvps != null) {
-                for (String kvp : kvps) {
-                    String[] split = KEY_VALUE_SPLIT_PATTERN.split(kvp);
-                    if (split.length == 2) {
-                        params.put(split[0], split[1]);
-                    }
+    public static Map<String, String> splitParametersMap(String paramList) {
+        Map<String, String> params = new HashMap<String, String>();
+
+        List<String> kvps = splitParameters(paramList);
+        if (kvps != null) {
+            for (String kvp : kvps) {
+                String[] split = KEY_VALUE_SPLIT_PATTERN.split(kvp);
+                if (split.length == 2) {
+                    params.put(split[0], split[1]);
                 }
             }
-
-            return params;
         }
 
-
-	/* --- Constructors --- */
-	
-	/**
-	 * Private constructor
-	 */
-	private WssUtils() {
-		// avoid instantiation
-	}
-	
-	
-	
+        return params;
+    }
 }
