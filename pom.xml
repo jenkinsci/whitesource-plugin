@@ -49,23 +49,13 @@
     </organization>
     <developers>
         <developer>
-            <id>itaimarko</id>
-            <name>Itai Marko</name>
-            <email>itai.marko@whitesourcesoftware.com</email>
-            <organization>White Source</organization>
-            <url>http://www.whitesourcesoftware.com/</url>
-            <roles>
-                <role>Lead Developer</role>
-            </roles>
-        </developer>
-        <developer>
             <id>annarozin</id>
             <name>Anna Rozin</name>
             <email>anna.rozin@whitesourcesoftware.com</email>
             <organization>White Source</organization>
             <url>http://www.whitesourcesoftware.com/</url>
             <roles>
-                <role>Software Developer</role>
+                <role>Lead Developer</role>
             </roles>
         </developer>
         <developer>
