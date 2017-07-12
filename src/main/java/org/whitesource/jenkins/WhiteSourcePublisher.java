@@ -16,6 +16,7 @@
 
 package org.whitesource.jenkins;
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -52,33 +53,33 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
     /* --- Members --- */
 
-    private final String jobCheckPolicies;
+    private String jobCheckPolicies;
 
-    private final String jobForceUpdate;
+    private String jobForceUpdate;
 
-    private final String jobApiToken;
+    private String jobApiToken;
 
-    private final String product;
+    private String product;
 
-    private final String productVersion;
+    private String productVersion;
 
-    private final String projectToken;
+    private String projectToken;
 
-    private final String libIncludes;
+    private String libIncludes;
 
-    private final String libExcludes;
+    private String libExcludes;
 
-    private final String mavenProjectToken;
+    private String mavenProjectToken;
 
-    private final String requesterEmail;
+    private String requesterEmail;
 
-    private final String moduleTokens;
+    private String moduleTokens;
 
-    private final String modulesToInclude;
+    private String modulesToInclude;
 
-    private final String modulesToExclude;
+    private String modulesToExclude;
 
-    private final boolean ignorePomModules;
+    private boolean ignorePomModules;
 
     /* --- Constructors --- */
 
@@ -118,10 +119,10 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        checkEnvironmentVariables(run, listener);
         PrintStream logger = listener.getLogger();
-        logger.println(UPDATING_WHITESOURCE);
-
         Result buildResult = run.getResult();
+
         if (buildResult == null) {
             throw new RuntimeException("Failed to acquire build result");
         }
@@ -134,6 +135,8 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
             logger.println(UNSUPPORTED_FREESTYLE_MAVEN_JOB);
             return;
         }
+
+        logger.println(UPDATING_WHITESOURCE);
         WhiteSourceStep whiteSourceStep = new WhiteSourceStep(this, new WhiteSourceDescriptor((DescriptorImpl) getDescriptor()));
 
         // make sure we have an organization token
@@ -146,7 +149,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         if (projectInfos == null) {
             whiteSourceStep.stopBuild(run, listener, "Unrecognized build type " + run.getClass().getName());
             return;
-        } else if (projectInfos.isEmpty()){
+        } else if (projectInfos.isEmpty()) {
             logger.println(OSS_INFO_NOT_FOUND);
         } else {
             whiteSourceStep.update(run, listener, projectInfos);
@@ -336,6 +339,41 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         public void setGlobalForceUpdate(boolean globalForceUpdate) {
             this.globalForceUpdate = globalForceUpdate;
         }
+
+    }
+
+    /* --- Private methods --- */
+
+    private void checkEnvironmentVariables(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
+        this.jobApiToken = extractEnvironmentVariables(run, listener, this.jobApiToken);
+        this.product = extractEnvironmentVariables(run, listener, this.product);
+        this.productVersion = extractEnvironmentVariables(run, listener, this.productVersion);
+        this.projectToken = extractEnvironmentVariables(run, listener, this.projectToken);
+        this.libIncludes = extractEnvironmentVariables(run, listener, this.libIncludes);
+        this.libExcludes = extractEnvironmentVariables(run, listener, this.libExcludes);
+        this.requesterEmail = extractEnvironmentVariables(run, listener, this.requesterEmail);
+    }
+
+    private String extractEnvironmentVariables(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener, String variable) {
+        EnvVars envVars = new EnvVars();
+        PrintStream logger = listener.getLogger();
+        String result = variable;
+        try {
+            envVars = run.getEnvironment(listener);
+            if (variable.startsWith("$")) {
+                if (variable.startsWith("${")) {
+                    result = envVars.get("$" + variable.substring(2, variable.length() - 1));
+                }
+                result = envVars.get(variable);
+            }
+            if (result == null) {
+                logger.println("Environment variable \"" + variable + "\" was not found");
+                run.setResult(Result.ABORTED);
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     /* --- Getters --- */
