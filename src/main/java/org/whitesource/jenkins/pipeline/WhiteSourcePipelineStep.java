@@ -355,7 +355,7 @@ public class WhiteSourcePipelineStep extends Step {
     }
 
     private static class Execution extends SynchronousNonBlockingStepExecution<Void> {
-
+        private static final long serialVersionUID = 1L;
         /* --- Members --- */
 
         private transient final WhiteSourcePipelineStep step;
