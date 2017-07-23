@@ -355,25 +355,28 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
     }
 
     private String extractEnvironmentVariables(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener, String variable) {
-        EnvVars envVars = new EnvVars();
-        PrintStream logger = listener.getLogger();
-        String result = variable;
-        try {
-            envVars = run.getEnvironment(listener);
-            if (variable.startsWith("$")) {
-                if (variable.startsWith("${")) {
-                    result = envVars.get("$" + variable.substring(2, variable.length() - 1));
+        if (StringUtils.isNotEmpty(variable)) {
+            String result = variable;
+            try {
+                EnvVars envVars = run.getEnvironment(listener);
+                if (variable.startsWith("$")) {
+                    if (variable.startsWith("${")) {
+                        result = envVars.get("$" + variable.substring(2, variable.length() - 1));
+                    } else {
+                        result = envVars.get(variable);
+                    }
+                    if (result == null) {
+                        return null;
+                    }
+                } else {
+                    return variable;
                 }
-                result = envVars.get(variable);
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
             }
-            if (result == null) {
-                logger.println("Environment variable \"" + variable + "\" was not found");
-                run.setResult(Result.ABORTED);
-            }
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            return result;
         }
-        return result;
+        return variable;
     }
 
     /* --- Getters --- */
