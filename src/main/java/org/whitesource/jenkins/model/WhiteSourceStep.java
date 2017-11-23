@@ -21,10 +21,12 @@ import org.whitesource.jenkins.extractor.maven.MavenOssInfoExtractor;
 import org.whitesource.jenkins.pipeline.WhiteSourcePipelineStep;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Properties;
 
 import static org.whitesource.jenkins.Constants.*;
 
@@ -94,7 +96,7 @@ public class WhiteSourceStep {
 
     public void update(Run<?, ?> run, TaskListener listener, Collection<AgentProjectInfo> projectInfos) {
         PrintStream logger = listener.getLogger();
-        WhitesourceService service = createServiceClient();
+        WhitesourceService service = createServiceClient(logger);
         try {
             if (shouldCheckPolicies) {
                 logger.println("Checking policies");
@@ -161,7 +163,7 @@ public class WhiteSourceStep {
 
     /* --- Private methods --- */
 
-    private WhitesourceService createServiceClient() {
+    private WhitesourceService createServiceClient(PrintStream logger) {
         String url = globalConfig.getServiceUrl();
         if (StringUtils.isNotBlank(url)) {
             if (!url.endsWith("/")) {
@@ -175,8 +177,9 @@ public class WhiteSourceStep {
             connectionTimeout = connectionTimeoutInteger > 0 ? connectionTimeoutInteger : connectionTimeout;
         }
         boolean proxyConfigured = isProxyConfigured(globalConfig);
-        WhitesourceService service = new WhitesourceService(Constants.AGENT_TYPE, Constants.AGENT_VERSION, url,
-                proxyConfigured, connectionTimeout);
+        WhitesourceService service = new WhitesourceService(Constants.AGENT_TYPE, getResource(Constants.AGENTS_VERSION, logger),
+                getResource(Constants.VERSION, logger), url, proxyConfigured, connectionTimeout);
+
 
         if (proxyConfigured) {
             String host, userName, password;
@@ -273,12 +276,36 @@ public class WhiteSourceStep {
     }
 
     private void logUpdateResult(UpdateInventoryResult result, PrintStream logger) {
-        logger.println("White Source update results: ");
-        logger.println("White Source organization: " + result.getOrganization());
+        logger.println("WhiteSource update results: ");
+        logger.println("WhiteSource organization: " + result.getOrganization());
         logger.println(result.getCreatedProjects().size() + " Newly created projects:");
         logger.println(StringUtils.join(result.getCreatedProjects(), ","));
         logger.println(result.getUpdatedProjects().size() + " existing projects were updated:");
         logger.println(StringUtils.join(result.getUpdatedProjects(), ","));
+        // support token
+        String requestToken = result.getRequestToken();
+        if (StringUtils.isNotBlank(requestToken)) {
+            logger.println("WhiteSource Support Token: " + requestToken);
+        }
+    }
+
+    private String getResource(String propertyName, PrintStream logger) {
+        Properties properties = getProperties(logger);
+        String val = (properties.getProperty(propertyName));
+        if(StringUtils.isNotBlank(val)){
+            return val;
+        }
+        return "";
+    }
+
+    private Properties getProperties(PrintStream logger) {
+        Properties properties = new Properties();
+        try (InputStream stream = WhiteSourceStep.class.getResourceAsStream("/project.properties")) {
+            properties.load(stream);
+        } catch (IOException e) {
+            logger.println("White Source update results: ");
+        }
+        return properties;
     }
 
     /* --- Getters / Setters --- */

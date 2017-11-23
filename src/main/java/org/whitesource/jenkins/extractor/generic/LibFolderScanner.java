@@ -21,14 +21,14 @@ import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
 import jenkins.MasterToSlaveFileCallable;
 import org.apache.commons.lang.StringUtils;
-import org.whitesource.agent.api.ChecksumUtils;
+import org.whitesource.agent.api.model.ChecksumType;
 import org.whitesource.agent.api.model.DependencyInfo;
+import org.whitesource.agent.hash.ChecksumUtils;
+import org.whitesource.agent.hash.HashCalculator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Implementation of the interface for scanning the workspace for all OSS libraries. 
@@ -40,7 +40,9 @@ public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<Depen
 	/* --- Static members --- */
 	
 	private static final long serialVersionUID = 6773794529916357187L;
-	
+
+	private static final String JAVA_SCRIPT_REGEX = ".*\\.js";
+
 	/* --- Members --- */
 	
 	private List<String> libIncludes;
@@ -95,23 +97,46 @@ public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<Depen
 		info.setSystemPath(file.getRemote());
 		info.setArtifactId(file.getName());
 		info.setSha1(file.act(new CalcSha1FileCallable()));
+		// handle JavaScript files
+		calculateHashes(new File(file.getRemote()), info);
 
 		return info;
 	}
 
+	private void calculateHashes(File file, DependencyInfo info) {
+		if (file.getName().toLowerCase().matches(JAVA_SCRIPT_REGEX)) {
+			Map<ChecksumType, String> javaScriptChecksums = new HashMap<>();
+			try {
+				javaScriptChecksums = new HashCalculator().calculateJavaScriptHashes(file);
+			} catch (Exception e) {
+				listener.getLogger().println("Failed to calculate javaScript file hash for :" + file.getName());
+//				logger.debug("Failed to calculate javaScript hash for file: {}, error: {}", dependencyFile.getPath(), e);
+			}
+			for (Map.Entry<ChecksumType, String> entry : javaScriptChecksums.entrySet()) {
+				info.addChecksum(entry.getKey(), entry.getValue());
+			}
+		}
+
+		// other platform SHA1
+		ChecksumUtils.calculateOtherPlatformSha1(info, file);
+
+		// super hash
+		ChecksumUtils.calculateSuperHash(info, file);
+	}
+
 	/* --- Nested classes --- */
-	
+
 	/**
-	 * Implementation of the interface to calculate SHA-1 hash code for location abstracted files. 
-	 * 
+	 * Implementation of the interface to calculate SHA-1 hash code for location abstracted files.
+	 *
 	 * @author Edo.Shor
 	 */
 	static class CalcSha1FileCallable extends MasterToSlaveFileCallable<String> {
 
 		/* --- Static members --- */
-		
+
 		private static final long serialVersionUID = 2959979211787869074L;
-		
+
 		/* --- Interface implementation methods --- */
 
 		public String invoke(File f, VirtualChannel channel)
@@ -120,4 +145,5 @@ public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<Depen
 		}
 
 	}
+
 }

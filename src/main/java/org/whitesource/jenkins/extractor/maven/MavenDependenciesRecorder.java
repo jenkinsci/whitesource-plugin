@@ -24,8 +24,8 @@ import hudson.maven.MavenBuildProxy.BuildCallable;
 import hudson.model.BuildListener;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
-import org.whitesource.agent.api.ChecksumUtils;
 import org.whitesource.agent.api.model.DependencyInfo;
+import org.whitesource.agent.hash.ChecksumUtils;
 
 import java.io.File;
 import java.io.IOException;
