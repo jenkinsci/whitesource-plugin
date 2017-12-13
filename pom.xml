@@ -77,7 +77,7 @@
 
     <properties>
         <jenkins.version>1.609.3</jenkins.version>
-        <!--<jenkins.version>2.55</jenkins.version>-->
+        <!--<jenkins.version>2.60</jenkins.version>-->
         <java.level>8</java.level>
         <agent.version>2.4.6</agent.version>
         <skipTests>true</skipTests>
@@ -85,6 +85,23 @@
     </properties>
 
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.jenkins-ci.plugins.workflow/workflow-aggregator -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-job</artifactId>
+            <version>2.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.jenkins-ci.plugins.workflow/workflow-step-api -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-cps</artifactId>
+            <version>2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.whitesource</groupId>
+            <artifactId>whitesource-fs-agent</artifactId>
+            <version>17.12.1</version>
+        </dependency>
         <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>wss-agent-api-client</artifactId>

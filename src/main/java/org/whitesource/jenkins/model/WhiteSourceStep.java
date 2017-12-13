@@ -7,11 +7,18 @@ import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.jenkinsci.plugins.workflow.cps.CpsFlowExecution;
+import org.jenkinsci.plugins.workflow.flow.FlowExecution;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.whitesource.agent.FileSystemScanner;
 import org.whitesource.agent.api.dispatch.CheckPolicyComplianceResult;
 import org.whitesource.agent.api.dispatch.UpdateInventoryResult;
 import org.whitesource.agent.api.model.AgentProjectInfo;
+import org.whitesource.agent.api.model.Coordinates;
+import org.whitesource.agent.api.model.DependencyInfo;
 import org.whitesource.agent.client.WhitesourceService;
 import org.whitesource.agent.client.WssServiceException;
+import org.whitesource.agent.dependency.resolver.DependencyResolutionService;
 import org.whitesource.agent.report.PolicyCheckReport;
 import org.whitesource.jenkins.Constants;
 import org.whitesource.jenkins.PolicyCheckReportAction;
@@ -19,13 +26,14 @@ import org.whitesource.jenkins.WhiteSourcePublisher;
 import org.whitesource.jenkins.extractor.generic.GenericOssInfoExtractor;
 import org.whitesource.jenkins.extractor.maven.MavenOssInfoExtractor;
 import org.whitesource.jenkins.pipeline.WhiteSourcePipelineStep;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 
 import static org.whitesource.jenkins.Constants.*;
@@ -35,6 +43,13 @@ import static org.whitesource.jenkins.Constants.*;
  * @author artiom.petrov
  */
 public class WhiteSourceStep {
+
+    /* --- Static members --- */
+
+    public static final String SPACE = " ";
+    private static final String PLUGIN_AGENTS_VERSION = "2.4.6";
+    private static final String PLUGIN_VERSION = "17.12.1";
+    public static final String WITH_MAVEN = "withMaven";
 
     /* --- Members --- */
 
@@ -143,6 +158,7 @@ public class WhiteSourceStep {
 
         productNameOrToken = product;
         if (run instanceof MavenModuleSetBuild) {
+            logger.println("Starting Maven job on " + workspace.getRemote());
             MavenOssInfoExtractor extractor = new MavenOssInfoExtractor(modulesToInclude,
                     modulesToExclude, (MavenModuleSetBuild) run, listener, mavenProjectToken, moduleTokens, ignorePomModules);
             projectInfos = extractor.extract();
@@ -150,9 +166,19 @@ public class WhiteSourceStep {
                 productNameOrToken = extractor.getTopMostProjectName();
             }
         } else if (run instanceof FreeStyleBuild || isFreeStyleStep) {
-            GenericOssInfoExtractor extractor = new GenericOssInfoExtractor(libIncludes, libExcludes, run, listener, projectToken, workspace);
-            projectInfos = extractor.extract();
+            FlowExecution exec = ((WorkflowRun) run).getExecution();
+            if (exec != null) {
+                String script = ((CpsFlowExecution) exec).getScript();
+                if (StringUtils.isNotBlank(script) && script.contains(WITH_MAVEN)) {
+                    projectInfos = getFSAProjects(logger, workspace);
+                } else {
+                    logger.println("Starting generic job on " + workspace.getRemote());
+                    GenericOssInfoExtractor extractor = new GenericOssInfoExtractor(libIncludes, libExcludes, run, listener, projectToken, workspace);
+                    projectInfos = extractor.extract();
+                }
+            }
         }
+        logger.println("Job finished.");
         return projectInfos;
     }
 
@@ -177,8 +203,8 @@ public class WhiteSourceStep {
             connectionTimeout = connectionTimeoutInteger > 0 ? connectionTimeoutInteger : connectionTimeout;
         }
         boolean proxyConfigured = isProxyConfigured(globalConfig);
-        WhitesourceService service = new WhitesourceService(Constants.AGENT_TYPE, getResource(Constants.AGENTS_VERSION, logger),
-                getResource(Constants.VERSION, logger), url, proxyConfigured, connectionTimeout);
+        WhitesourceService service = new WhitesourceService(Constants.AGENT_TYPE, PLUGIN_AGENTS_VERSION,
+                PLUGIN_VERSION, url, proxyConfigured, connectionTimeout);
 
 
         if (proxyConfigured) {
@@ -292,7 +318,7 @@ public class WhiteSourceStep {
     private String getResource(String propertyName, PrintStream logger) {
         Properties properties = getProperties(logger);
         String val = (properties.getProperty(propertyName));
-        if(StringUtils.isNotBlank(val)){
+        if (StringUtils.isNotBlank(val)) {
             return val;
         }
         return "";
@@ -444,5 +470,27 @@ public class WhiteSourceStep {
 
     public boolean isForceUpdate() {
         return isForceUpdate;
+    }
+
+    public Collection<AgentProjectInfo> getFSAProjects(PrintStream logger, FilePath workspace) {
+        List<AgentProjectInfo> projects = new ArrayList<>();
+        logger.println("Starting Pipeline-FSA job on " + workspace.getRemote());
+        Properties props = new Properties();
+        List<String> paths = new ArrayList<>();
+        paths.add(workspace.getRemote());
+        List<DependencyInfo> dependencyInfos = null;
+        try {
+            FileSystemScanner fileSystemScanner = new FileSystemScanner(false, new DependencyResolutionService(props));
+            dependencyInfos = fileSystemScanner.createProjects(paths, false, libIncludes.split(SPACE), libExcludes.split(SPACE), false, 0, null, null, false, false, null, false);
+            logger.println("Found " + dependencyInfos.size() + "dependencies .");
+        } catch (Exception ex) {
+            logger.println("Error getting FSA dependencies " + ex.toString());
+        }
+        AgentProjectInfo agentProjectInfo = new AgentProjectInfo();
+        agentProjectInfo.setCoordinates(new Coordinates(null, productNameOrToken, productVersion));
+        agentProjectInfo.setDependencies(dependencyInfos);
+        projects.add(agentProjectInfo);
+
+        return projects;
     }
 }
