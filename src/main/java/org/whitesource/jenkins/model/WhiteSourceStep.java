@@ -166,16 +166,16 @@ public class WhiteSourceStep {
                 productNameOrToken = extractor.getTopMostProjectName();
             }
         } else if (run instanceof FreeStyleBuild || isFreeStyleStep) {
-            FlowExecution exec = ((WorkflowRun) run).getExecution();
-            if (exec != null) {
+            if (run instanceof WorkflowRun) {
+                FlowExecution exec = ((WorkflowRun) run).getExecution();
                 String script = ((CpsFlowExecution) exec).getScript();
                 if (StringUtils.isNotBlank(script) && script.contains(WITH_MAVEN)) {
                     projectInfos = getFSAProjects(logger, workspace);
-                } else {
-                    logger.println("Starting generic job on " + workspace.getRemote());
-                    GenericOssInfoExtractor extractor = new GenericOssInfoExtractor(libIncludes, libExcludes, run, listener, projectToken, workspace);
-                    projectInfos = extractor.extract();
                 }
+            } else {
+                logger.println("Starting generic job on " + workspace.getRemote());
+                GenericOssInfoExtractor extractor = new GenericOssInfoExtractor(libIncludes, libExcludes, run, listener, projectToken, workspace);
+                projectInfos = extractor.extract();
             }
         }
         logger.println("Job finished.");
