@@ -158,27 +158,45 @@ public class WhiteSourceStep {
 
         productNameOrToken = product;
         if (run instanceof MavenModuleSetBuild) {
-            logger.println("Starting Maven job on " + workspace.getRemote());
-            MavenOssInfoExtractor extractor = new MavenOssInfoExtractor(modulesToInclude,
-                    modulesToExclude, (MavenModuleSetBuild) run, listener, mavenProjectToken, moduleTokens, ignorePomModules);
-            projectInfos = extractor.extract();
-            if (StringUtils.isBlank(product)) {
-                productNameOrToken = extractor.getTopMostProjectName();
-            }
+            // maven job
+            projectInfos = getMavenProjectInfos((MavenModuleSetBuild) run, listener, workspace, logger);
         } else if (run instanceof FreeStyleBuild || isFreeStyleStep) {
             if (run instanceof WorkflowRun) {
                 FlowExecution exec = ((WorkflowRun) run).getExecution();
                 String script = ((CpsFlowExecution) exec).getScript();
                 if (StringUtils.isNotBlank(script) && script.contains(WITH_MAVEN)) {
+                    // maven pipeline job
                     projectInfos = getFSAProjects(logger, workspace);
+                }else {
+                    // pipeline job
+                    projectInfos = getGenericProjectInfos(run, listener, workspace, logger);
                 }
             } else {
-                logger.println("Starting generic job on " + workspace.getRemote());
-                GenericOssInfoExtractor extractor = new GenericOssInfoExtractor(libIncludes, libExcludes, run, listener, projectToken, workspace);
-                projectInfos = extractor.extract();
+                // freestyle job (same as pipeline)
+                projectInfos = getGenericProjectInfos(run, listener, workspace, logger);
             }
         }
         logger.println("Job finished.");
+        return projectInfos;
+    }
+
+    private Collection<AgentProjectInfo> getMavenProjectInfos(MavenModuleSetBuild run, TaskListener listener, FilePath workspace, PrintStream logger) throws InterruptedException, IOException {
+        Collection<AgentProjectInfo> projectInfos;
+        logger.println("Starting Maven job on " + workspace.getRemote());
+        MavenOssInfoExtractor extractor = new MavenOssInfoExtractor(modulesToInclude,
+                modulesToExclude, run, listener, mavenProjectToken, moduleTokens, ignorePomModules);
+        projectInfos = extractor.extract();
+        if (StringUtils.isBlank(product)) {
+            productNameOrToken = extractor.getTopMostProjectName();
+        }
+        return projectInfos;
+    }
+
+    private Collection<AgentProjectInfo> getGenericProjectInfos(Run<?, ?> run, TaskListener listener, FilePath workspace, PrintStream logger) throws InterruptedException, IOException {
+        Collection<AgentProjectInfo> projectInfos;
+        logger.println("Starting generic job on " + workspace.getRemote());
+        GenericOssInfoExtractor extractor = new GenericOssInfoExtractor(libIncludes, libExcludes, run, listener, projectToken, workspace);
+        projectInfos = extractor.extract();
         return projectInfos;
     }
 
