@@ -22,78 +22,81 @@ import hudson.remoting.VirtualChannel;
 import jenkins.MasterToSlaveFileCallable;
 import org.apache.commons.lang.StringUtils;
 import org.whitesource.agent.api.model.ChecksumType;
-import org.whitesource.agent.api.model.DependencyInfo;
 import org.whitesource.agent.hash.ChecksumUtils;
+import org.whitesource.agent.hash.FileExtensions;
+import org.whitesource.agent.hash.HashCalculationResult;
 import org.whitesource.agent.hash.HashCalculator;
+import org.whitesource.jenkins.model.RemoteDependency;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 /**
- * Implementation of the interface for scanning the workspace for all OSS libraries. 
- * 
+ * Implementation of the interface for scanning the workspace for all OSS libraries.
+ *
  * @author Edo.Shor
  */
-public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<DependencyInfo>> {
+public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<RemoteDependency>> {
 
 	/* --- Static members --- */
-	
+
 	private static final long serialVersionUID = 6773794529916357187L;
 
 	private static final String JAVA_SCRIPT_REGEX = ".*\\.js";
+	public static final String EMPTY_STRING = "";
 
 	/* --- Members --- */
-	
+
 	private List<String> libIncludes;
-	
+
 	private List<String> libExcludes;
-	
+
 	private TaskListener listener;
-	
-	private Collection<DependencyInfo> dependencies;
-	
+
+	private Collection<RemoteDependency> dependencies;
+
 	/* --- Constructors --- */
 
-    /**
-     * Constructor
-     *  @param libIncludes Ant style pattern for files to include.
-     * @param libExcludes Ant style pattern for files to exclude.
+	/**
+	 * Constructor
+	 *  @param libIncludes Ant style pattern for files to include.
+	 * @param libExcludes Ant style pattern for files to exclude.
 	 * @param listener
 	 */
-    public LibFolderScanner(List<String> libIncludes, List<String> libExcludes, TaskListener listener) {
-        this.libIncludes = libIncludes;
-        this.libExcludes = libExcludes;
-        this.listener = listener;
-        dependencies = new ArrayList<DependencyInfo>();
-    }
+	public LibFolderScanner(List<String> libIncludes, List<String> libExcludes, TaskListener listener) {
+		this.libIncludes = libIncludes;
+		this.libExcludes = libExcludes;
+		this.listener = listener;
+		dependencies = new ArrayList<RemoteDependency>();
+	}
 
 	/* --- Interface implementation methods --- */
 
-	public Collection<DependencyInfo> invoke(File f, VirtualChannel channel)
+	public Collection<RemoteDependency> invoke(File f, VirtualChannel channel)
 			throws IOException, InterruptedException {
-        listener.getLogger().println("Scanning folder " + f.getName());
+		listener.getLogger().println("Scanning folder " + f.getName());
 
-        String includes = StringUtils.join(libIncludes, ",");
-        String excludes = StringUtils.join(libExcludes, ",");
+		String includes = StringUtils.join(libIncludes, ",");
+		String excludes = StringUtils.join(libExcludes, ",");
 		FilePath[] libraries = new FilePath(f).list(includes, excludes);
 		for (FilePath file : libraries) {
 			try {
-                dependencies.add(collectDependencyInfo(file));
-            } catch (IOException e) {
-                listener.getLogger().println("Error extracting library details");
-            }
+				dependencies.add(collectDependencyInfo(file));
+			} catch (IOException e) {
+				listener.getLogger().println("Error extracting library details");
+			}
 		}
-		
-        listener.getLogger().println("Found " + dependencies.size() + " dependencies matching include / exclude pattern in folder.");
-		
+
+		listener.getLogger().println("Found " + dependencies.size() + " dependencies matching include / exclude pattern in folder.");
+
 		return dependencies;
 	}
-	
+
 	/* --- Private methods --- */
 
-	private DependencyInfo collectDependencyInfo(FilePath file) throws IOException, InterruptedException {
-		DependencyInfo info = new DependencyInfo();
+	private RemoteDependency collectDependencyInfo(FilePath file) throws IOException, InterruptedException {
+		RemoteDependency info = new RemoteDependency();
 		info.setSystemPath(file.getRemote());
 		info.setArtifactId(file.getName());
 		info.setSha1(file.act(new CalcSha1FileCallable()));
@@ -103,7 +106,7 @@ public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<Depen
 		return info;
 	}
 
-	private void calculateHashes(File file, DependencyInfo info) {
+	private void calculateHashes(File file, RemoteDependency info) {
 		if (file.getName().toLowerCase().matches(JAVA_SCRIPT_REGEX)) {
 			Map<ChecksumType, String> javaScriptChecksums = new HashMap<>();
 			try {
@@ -113,15 +116,30 @@ public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<Depen
 //				logger.debug("Failed to calculate javaScript hash for file: {}, error: {}", dependencyFile.getPath(), e);
 			}
 			for (Map.Entry<ChecksumType, String> entry : javaScriptChecksums.entrySet()) {
-				info.addChecksum(entry.getKey(), entry.getValue());
+				info.getChecksums().put(entry.getKey(), entry.getValue());
 			}
 		}
 
 		// other platform SHA1
-		ChecksumUtils.calculateOtherPlatformSha1(info, file);
+		String otherPlatformSha1 = ChecksumUtils.calculateOtherPlatformSha1(file);
+		info.setOtherPlatformSha1(otherPlatformSha1);
 
 		// super hash
-		ChecksumUtils.calculateSuperHash(info, file);
+		StringBuilder superHash = new StringBuilder(EMPTY_STRING);
+		HashCalculator superHashCalculator = new HashCalculator();
+		if (!file.getName().toLowerCase().matches(FileExtensions.BINARY_FILE_EXTENSION_REGEX)) {
+			try {
+				HashCalculationResult superHashResult = superHashCalculator.calculateSuperHash(file);
+				if (superHashResult != null) {
+					info.setFullHash(superHashResult.getFullHash());
+					info.setMostSigBitsHash(superHashResult.getMostSigBitsHash());
+					info.setLeastSigBitsHash(superHashResult.getLeastSigBitsHash());
+					superHash.append(superHashResult.getFullHash());
+				}
+			} catch (IOException err) {
+				listener.getLogger().println("Error calculating fullHash for {}, Error - " + file.getName() + err.getMessage());
+			}
+		}
 	}
 
 	/* --- Nested classes --- */

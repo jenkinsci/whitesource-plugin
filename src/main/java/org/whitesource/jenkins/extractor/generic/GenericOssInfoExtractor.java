@@ -9,6 +9,7 @@ import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.agent.api.model.Coordinates;
 import org.whitesource.agent.api.model.DependencyInfo;
 import org.whitesource.jenkins.extractor.BaseOssInfoExtractor;
+import org.whitesource.jenkins.model.RemoteDependency;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,7 +53,7 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
     /* --- Concrete implementation methods --- */
 
     @Override
-    public Collection<AgentProjectInfo> extract() throws InterruptedException, IOException{
+    public Collection<AgentProjectInfo> extract() throws InterruptedException, IOException {
         Collection<AgentProjectInfo> projectInfos = new ArrayList<>();
 
         if (CollectionUtils.isEmpty(includes)) {
@@ -77,9 +78,31 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
             dependencies = new ArrayList<>();
             projectInfo.setDependencies((List<DependencyInfo>) dependencies);
         }
-        dependencies.addAll(workspace.act(libScanner));
+
+        Collection<RemoteDependency> remoteDependencies = workspace.act(libScanner);
+        dependencies.addAll(getAllDependencies(remoteDependencies));
         projectInfos.add(projectInfo);
 
         return projectInfos;
+    }
+
+    private Collection<DependencyInfo> getAllDependencies(Collection<RemoteDependency> remoteDependencies) {
+        Collection<DependencyInfo> dependencies = new ArrayList<>();
+
+        for (RemoteDependency remoteDependency : remoteDependencies) {
+            DependencyInfo dependencyInfo = new DependencyInfo();
+            dependencyInfo.setSystemPath(remoteDependency.getSystemPath());
+            dependencyInfo.setArtifactId(remoteDependency.getArtifactId());
+            dependencyInfo.setSha1(remoteDependency.getSha1());
+            dependencyInfo.setChecksums(remoteDependency.getChecksums());
+
+            dependencyInfo.setOtherPlatformSha1(remoteDependency.getOtherPlatformSha1());
+            dependencyInfo.setFullHash(remoteDependency.getFullHash());
+            dependencyInfo.setMostSigBitsHash(remoteDependency.getMostSigBitsHash());
+            dependencyInfo.setLeastSigBitsHash(remoteDependency.getLeastSigBitsHash());
+            dependencies.add(dependencyInfo);
+        }
+
+        return dependencies;
     }
 }
