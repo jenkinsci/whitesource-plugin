@@ -19,7 +19,7 @@
 package org.whitesource.jenkins.extractor.maven;
 
 import hudson.model.Action;
-import org.whitesource.agent.api.model.DependencyInfo;
+import org.whitesource.jenkins.model.RemoteDependency;
 
 import java.util.Set;
 
@@ -30,9 +30,9 @@ import java.util.Set;
  * @author Edo.Shor (White Source)
  */
 public class MavenDependenciesRecord implements Action {
-    private final Set<DependencyInfo> dependencies;
+    private final Set<RemoteDependency> dependencies;
 
-    public MavenDependenciesRecord(Set<DependencyInfo> dependencies) {
+    public MavenDependenciesRecord(Set<RemoteDependency> dependencies) {
         this.dependencies = dependencies;
     }
 
@@ -48,7 +48,7 @@ public class MavenDependenciesRecord implements Action {
         return null;
     }
 
-    public Set<DependencyInfo> getDependencies() {
+    public Set<RemoteDependency> getDependencies() {
         return dependencies;
     }
 }

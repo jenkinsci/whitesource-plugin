@@ -158,7 +158,7 @@ public class WhiteSourceStep {
 
         productNameOrToken = product;
         if (run instanceof MavenModuleSetBuild) {
-            // maven job
+            // maven job - support Remote dependency JEP-200
             projectInfos = getMavenProjectInfos((MavenModuleSetBuild) run, listener, workspace, logger);
         } else if (run instanceof FreeStyleBuild || isFreeStyleStep) {
             if (run instanceof WorkflowRun) {
@@ -166,13 +166,14 @@ public class WhiteSourceStep {
                 String script = ((CpsFlowExecution) exec).getScript();
                 if (StringUtils.isNotBlank(script) && script.contains(WITH_MAVEN)) {
                     // maven pipeline job
+                    // todo: check JEP-200 compatibility
                     projectInfos = getFSAProjects(logger, workspace);
                 }else {
-                    // pipeline job
+                    // pipeline job - support Remote dependency JEP-200
                     projectInfos = getGenericProjectInfos(run, listener, workspace, logger);
                 }
             } else {
-                // freestyle job (same as pipeline)
+                // freestyle job (same as pipeline) - support Remote dependency JEP-200
                 projectInfos = getGenericProjectInfos(run, listener, workspace, logger);
             }
         }

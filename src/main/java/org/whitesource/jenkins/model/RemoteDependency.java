@@ -1,8 +1,11 @@
 package org.whitesource.jenkins.model;
 
 import org.whitesource.agent.api.model.ChecksumType;
+import org.whitesource.agent.api.model.DependencyInfo;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,12 +27,49 @@ public class RemoteDependency implements Serializable {
     private String otherPlatformSha1;
     private String fullHash;
     private String mostSigBitsHash;
+
+    private String groupId;
+    private String version;
+    private String type;
+    private String classifier;
+    private String scope;
+
     private String leastSigBitsHash;
 
     /* --- Constructors --- */
 
     public RemoteDependency() {
         checksums = new HashMap<>();
+    }
+
+    /* -- */
+
+    public static Collection<DependencyInfo> convert(Collection<RemoteDependency> remoteDependencies) {
+        Collection<DependencyInfo> dependencies = new ArrayList<>();
+
+        for (RemoteDependency remoteDependency : remoteDependencies) {
+            DependencyInfo dependencyInfo = new DependencyInfo();
+            dependencyInfo.setSystemPath(remoteDependency.getSystemPath());
+            dependencyInfo.setArtifactId(remoteDependency.getArtifactId());
+            dependencyInfo.setSha1(remoteDependency.getSha1());
+            dependencyInfo.setChecksums(remoteDependency.getChecksums());
+
+            dependencyInfo.setOtherPlatformSha1(remoteDependency.getOtherPlatformSha1());
+            dependencyInfo.setFullHash(remoteDependency.getFullHash());
+            dependencyInfo.setMostSigBitsHash(remoteDependency.getMostSigBitsHash());
+            dependencyInfo.setLeastSigBitsHash(remoteDependency.getLeastSigBitsHash());
+
+
+            dependencyInfo.setGroupId(remoteDependency.getGroupId());
+            dependencyInfo.setVersion(remoteDependency.getVersion());
+            dependencyInfo.setType(remoteDependency.getType());
+            dependencyInfo.setClassifier(remoteDependency.getClassifier());
+            dependencyInfo.setScope(remoteDependency.getScope());
+
+            dependencies.add(dependencyInfo);
+        }
+
+        return dependencies;
     }
 
     /* --- Getters/Setters  --- */
@@ -92,5 +132,45 @@ public class RemoteDependency implements Serializable {
 
     public String getLeastSigBitsHash() {
         return leastSigBitsHash;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getClassifier() {
+        return classifier;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setClassifier(String classifier) {
+        this.classifier = classifier;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 }

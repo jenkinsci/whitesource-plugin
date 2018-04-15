@@ -80,29 +80,9 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
         }
 
         Collection<RemoteDependency> remoteDependencies = workspace.act(libScanner);
-        dependencies.addAll(getAllDependencies(remoteDependencies));
+        dependencies.addAll(RemoteDependency.convert(remoteDependencies));
         projectInfos.add(projectInfo);
 
         return projectInfos;
-    }
-
-    private Collection<DependencyInfo> getAllDependencies(Collection<RemoteDependency> remoteDependencies) {
-        Collection<DependencyInfo> dependencies = new ArrayList<>();
-
-        for (RemoteDependency remoteDependency : remoteDependencies) {
-            DependencyInfo dependencyInfo = new DependencyInfo();
-            dependencyInfo.setSystemPath(remoteDependency.getSystemPath());
-            dependencyInfo.setArtifactId(remoteDependency.getArtifactId());
-            dependencyInfo.setSha1(remoteDependency.getSha1());
-            dependencyInfo.setChecksums(remoteDependency.getChecksums());
-
-            dependencyInfo.setOtherPlatformSha1(remoteDependency.getOtherPlatformSha1());
-            dependencyInfo.setFullHash(remoteDependency.getFullHash());
-            dependencyInfo.setMostSigBitsHash(remoteDependency.getMostSigBitsHash());
-            dependencyInfo.setLeastSigBitsHash(remoteDependency.getLeastSigBitsHash());
-            dependencies.add(dependencyInfo);
-        }
-
-        return dependencies;
     }
 }

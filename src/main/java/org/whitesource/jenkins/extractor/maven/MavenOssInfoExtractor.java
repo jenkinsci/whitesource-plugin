@@ -11,6 +11,7 @@ import org.whitesource.agent.api.model.Coordinates;
 import org.whitesource.agent.api.model.DependencyInfo;
 import org.whitesource.jenkins.WssUtils;
 import org.whitesource.jenkins.extractor.BaseOssInfoExtractor;
+import org.whitesource.jenkins.model.RemoteDependency;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -85,8 +86,8 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
                 if (dependenciesAction == null) {
                     logger.println("No dependencies found.");
                 } else {
-                    Set<DependencyInfo> dependencies = dependenciesAction.getDependencies();
-                    dependencyInfos.addAll(dependencies);
+                    Set<RemoteDependency> dependencies = dependenciesAction.getDependencies();
+                    dependencyInfos.addAll(RemoteDependency.convert(dependencies));
                     logger.println("Found " + dependencies.size() + " dependencies (transitive included)");
                 }
                 projectInfos.add(projectInfo);

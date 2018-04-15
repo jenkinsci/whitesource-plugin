@@ -24,8 +24,8 @@ import hudson.maven.MavenBuildProxy.BuildCallable;
 import hudson.model.BuildListener;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
-import org.whitesource.agent.api.model.DependencyInfo;
 import org.whitesource.agent.hash.ChecksumUtils;
+import org.whitesource.jenkins.model.RemoteDependency;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,14 +49,14 @@ public class MavenDependenciesRecorder extends MavenReporter {
 	/**
      * All dependencies this module used, including transitive ones.
      */
-    private transient Set<DependencyInfo> dependencies;
+    private transient Set<RemoteDependency> dependencies;
 
     /* --- Concrete implementation methods --- */
 
     @Override
     public boolean preBuild(MavenBuildProxy build, MavenProject pom, BuildListener listener) {
         listener.getLogger().println("[Jenkins] Collecting dependencies info");
-        dependencies = new HashSet<DependencyInfo>();
+        dependencies = new HashSet<>();
         return true;
     }
 
@@ -84,7 +84,7 @@ public class MavenDependenciesRecorder extends MavenReporter {
 			/* --- Members --- */
 			
 			// record is transient, so needs to make a copy first
-            private final Set<DependencyInfo> d = dependencies;
+            private final Set<RemoteDependency> d = dependencies;
             
             /* --- Interface implementation methods --- */
 
@@ -106,7 +106,7 @@ public class MavenDependenciesRecorder extends MavenReporter {
             for (Artifact dependency : artifacts) {
                 File dependencyFile = dependency.getFile();
                 if (dependency.isResolved() && dependencyFile != null) {
-                	DependencyInfo info = new DependencyInfo();
+                	RemoteDependency info = new RemoteDependency();
                 	info.setGroupId(dependency.getGroupId());
 					info.setArtifactId(dependency.getArtifactId());
 					info.setVersion(dependency.getVersion());
