@@ -18,13 +18,13 @@ package org.whitesource.jenkins;
 
 /**
  * Constants used by the plugin. 
- * 
+ *
  * @author Edo.Shor
  */
 public final class Constants {
-	
+
 	/* --- Agent settings --- */
-	
+
 	public static final String AGENT_TYPE = "jenkins";
 	public static final String VERSION = "version";
 	public static final String AGENTS_VERSION = "agentsVersion";
@@ -60,7 +60,7 @@ public final class Constants {
 	public static final String OSS_INFO_NOT_FOUND = "No open source information found.";
 
 	/* --- Constructor --- */
-	
+
 	/**
 	 * Private default constructor
 	 */

@@ -14,7 +14,8 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -41,8 +42,8 @@
         <connection>scm:git:git://github.com/jenkinsci/whitesource-plugin.git</connection>
         <developerConnection>scm:git:https://github.com/jenkinsci/whitesource-plugin.git</developerConnection>
         <url>http://github.com/jenkinsci/whitesource-plugin</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
     <organization>
         <name>White Source</name>
         <url>http://www.whitesourcesoftware.com/</url>
@@ -76,10 +77,11 @@
     </developers>
 
     <properties>
-        <jenkins.version>1.609.3</jenkins.version>
-        <!--<jenkins.version>2.60</jenkins.version>-->
+        <!--<jenkins.version>1.609.3</jenkins.version>-->
+        <jenkins.version>2.60.3</jenkins.version>
         <java.level>8</java.level>
-        <agent.version>2.4.6</agent.version>
+        <agent.version>2.6.8</agent.version>
+        <slf4j.version>1.7.5</slf4j.version>
         <skipTests>true</skipTests>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -99,26 +101,63 @@
         </dependency>
         <dependency>
             <groupId>org.whitesource</groupId>
-            <artifactId>whitesource-fs-agent</artifactId>
-            <version>17.12.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.whitesource</groupId>
             <artifactId>wss-agent-api-client</artifactId>
             <version>${agent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.whitesource</groupId>
+                    <artifactId>wss-agent-via-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>wss-agent-report</artifactId>
             <version>${agent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.whitesource</groupId>
+            <artifactId>wss-agent-hash-calculator</artifactId>
+            <version>${agent.version}</version>
+        </dependency>
 
         <dependency>
-            <groupId>org.jenkins-ci.main</groupId>
-            <artifactId>maven-plugin</artifactId>
-            <version>2.8</version>
+            <groupId>org.whitesource</groupId>
+            <artifactId>whitesource-fs-agent</artifactId>
+            <version>17.12.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.whitesource</groupId>
+                    <artifactId>wss-agent-api-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.whitesource</groupId>
+                    <artifactId>wss-agent-report</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.whitesource</groupId>
+                    <artifactId>wss-agent-hash-calculator</artifactId>
+                </exclusion>
+                <!-- Add again after the fsa will be update -->
+
+                <!-- <exclusion>
+                     <groupId>org.whitesource.analysis</groupId>
+                     <artifactId>whitesource-analysis-via</artifactId>
+                 </exclusion>
+                 <exclusion>
+                     <groupId>org.whitesource</groupId>
+                     <artifactId>wss-agent-via-api</artifactId>
+                 </exclusion>-->
+            </exclusions>
         </dependency>
         <dependency>
+
+            <groupId>org.jenkins-ci.main</groupId>
+            <artifactId>maven-plugin</artifactId>
+            <version>2.17</version>
+        </dependency>
+        <dependency>
+
             <groupId>org.jenkinsci.plugins</groupId>
             <artifactId>git</artifactId>
             <version>1.1.14</version>
@@ -133,6 +172,25 @@
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-step-api</artifactId>
             <version>2.9</version>
+        </dependency>
+
+        <!-- Logging -->
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -188,9 +246,9 @@
             </plugins>
         </pluginManagement>
     </build>
-	
-	<profiles>
-		<profile>
+
+    <profiles>
+        <profile>
             <id>Release</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
@@ -232,7 +290,6 @@
                     </plugin>
 
 
-
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>findbugs-maven-plugin</artifactId>
@@ -250,7 +307,7 @@
                 </plugins>
             </build>
         </profile>
-	</profiles>
+    </profiles>
 
     <!-- get every artifact through repo.jenkins-ci.org, which proxies all the
          artifacts that we need -->

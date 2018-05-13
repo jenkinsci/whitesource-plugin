@@ -10,6 +10,7 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowExecution;
 import org.jenkinsci.plugins.workflow.flow.FlowExecution;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.springframework.util.CollectionUtils;
 import org.whitesource.agent.FileSystemScanner;
 import org.whitesource.agent.api.dispatch.CheckPolicyComplianceResult;
 import org.whitesource.agent.api.dispatch.UpdateInventoryResult;
@@ -26,20 +27,19 @@ import org.whitesource.jenkins.WhiteSourcePublisher;
 import org.whitesource.jenkins.extractor.generic.GenericOssInfoExtractor;
 import org.whitesource.jenkins.extractor.maven.MavenOssInfoExtractor;
 import org.whitesource.jenkins.pipeline.WhiteSourcePipelineStep;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 import static org.whitesource.jenkins.Constants.*;
 
 /**
  * Holds job related configuration
+ *
  * @author artiom.petrov
  */
 public class WhiteSourceStep {
@@ -50,6 +50,7 @@ public class WhiteSourceStep {
     private static final String PLUGIN_AGENTS_VERSION = "2.4.6";
     private static final String PLUGIN_VERSION = "18.4.1";
     public static final String WITH_MAVEN = "withMaven";
+    public static final String GENERIC_GLOB_PATTERN = "**/*.";
 
     /* --- Members --- */
 
@@ -154,7 +155,7 @@ public class WhiteSourceStep {
 
         // collect OSS usage information
         logger.println("Collecting OSS usage information");
-        Collection<AgentProjectInfo> projectInfos = null;
+        Collection<AgentProjectInfo> projectInfos = new LinkedList<>();
 
         productNameOrToken = product;
         if (run instanceof MavenModuleSetBuild) {
@@ -167,8 +168,9 @@ public class WhiteSourceStep {
                 if (StringUtils.isNotBlank(script) && script.contains(WITH_MAVEN)) {
                     // maven pipeline job
                     // todo: check JEP-200 compatibility
+
                     projectInfos = getFSAProjects(logger, workspace);
-                }else {
+                } else {
                     // pipeline job - support Remote dependency JEP-200
                     projectInfos = getGenericProjectInfos(run, listener, workspace, logger);
                 }
@@ -491,6 +493,16 @@ public class WhiteSourceStep {
         return isForceUpdate;
     }
 
+    public void initializeIncludes() {
+        Collection<String> includes = new LinkedList<>();
+        if (CollectionUtils.isEmpty(includes)) {
+            for (String extension : GenericOssInfoExtractor.DEFAULT_SCAN_EXTENSIONS) {
+                includes.add(GENERIC_GLOB_PATTERN + extension);
+            }
+        }
+        libIncludes = String.join(",", includes);
+    }
+
     public Collection<AgentProjectInfo> getFSAProjects(PrintStream logger, FilePath workspace) {
         List<AgentProjectInfo> projects = new ArrayList<>();
         logger.println("Starting Pipeline-FSA job on " + workspace.getRemote());
@@ -498,6 +510,10 @@ public class WhiteSourceStep {
         List<String> paths = new ArrayList<>();
         paths.add(workspace.getRemote());
         List<DependencyInfo> dependencyInfos = null;
+        // initialize libIncludes if the user didn't insert any extensions
+        if (StringUtils.isEmpty(libIncludes)) {
+            initializeIncludes();
+        }
         try {
             FileSystemScanner fileSystemScanner = new FileSystemScanner(false, new DependencyResolutionService(props));
             dependencyInfos = fileSystemScanner.createProjects(paths, false, libIncludes.split(SPACE), libExcludes.split(SPACE), false, 0, null, null, false, false, null, false);
