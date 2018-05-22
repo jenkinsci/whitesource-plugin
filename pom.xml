@@ -103,7 +103,7 @@
         <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>whitesource-fs-agent</artifactId>
-            <version>18.4.2</version>
+            <version>18.5.1-SNAPSHOT</version>
             <!-- Add again after the fsa will be update -->
             <exclusions>
                 <exclusion>

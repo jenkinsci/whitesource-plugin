@@ -278,7 +278,7 @@ public class WhiteSourceStep {
         if (e instanceof IOException) {
             Util.displayIOException((IOException) e, listener);
         }
-        e.printStackTrace(listener.fatalError("White Source Publisher failure"));
+        listener.error("White Source Publisher failure " + e.getMessage());
         if (failOnError) {
             run.setResult(Result.FAILURE);
         }
