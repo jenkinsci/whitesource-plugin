@@ -33,6 +33,7 @@ public final class Constants {
 
 	public static final String SERVICE_URL = "serviceUrl";
 	public static final String API_TOKEN = "apiToken";
+	public static final String USER_KEY	 = "userKey";
 	public static final String CHECK_POLICIES = "checkPolicies";
 	public static final String PIPELINE_CHECK_POLICIES = "pipelineCheckPolicies";
 	public static final String FAIL_ON_ERROR = "failOnError";

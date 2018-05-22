@@ -25,7 +25,7 @@
     </parent>
 
     <artifactId>whitesource</artifactId>
-    <version>18.4.2-SNAPSHOT</version>
+    <version>18.5.1-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <name>White Source Jenkins plugin</name>
@@ -79,9 +79,9 @@
     <properties>
         <!--<jenkins.version>1.609.3</jenkins.version>-->
         <jenkins.version>2.60.3</jenkins.version>
-        <java.level>8</java.level>
-        <agent.version>2.6.8</agent.version>
         <slf4j.version>1.7.5</slf4j.version>
+        <java.level>8</java.level>
+        <agent.version>2.6.9</agent.version>
         <skipTests>true</skipTests>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -99,59 +99,29 @@
             <artifactId>workflow-cps</artifactId>
             <version>2.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.whitesource</groupId>
-            <artifactId>wss-agent-api-client</artifactId>
-            <version>${agent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.whitesource</groupId>
-                    <artifactId>wss-agent-via-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.whitesource</groupId>
-            <artifactId>wss-agent-report</artifactId>
-            <version>${agent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.whitesource</groupId>
-            <artifactId>wss-agent-hash-calculator</artifactId>
-            <version>${agent.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>whitesource-fs-agent</artifactId>
-            <version>17.12.2</version>
+            <version>18.4.2</version>
+            <!-- Add again after the fsa will be update -->
             <exclusions>
                 <exclusion>
-                    <groupId>org.whitesource</groupId>
-                    <artifactId>wss-agent-api-client</artifactId>
+                    <groupId>org.whitesource.analysis</groupId>
+                    <artifactId>whitesource-analysis-via</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.whitesource</groupId>
-                    <artifactId>wss-agent-report</artifactId>
+                    <artifactId>wss-agent-via-api</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>org.whitesource</groupId>
-                    <artifactId>wss-agent-hash-calculator</artifactId>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
                 </exclusion>
-                <!-- Add again after the fsa will be update -->
-
-                <!-- <exclusion>
-                     <groupId>org.whitesource.analysis</groupId>
-                     <artifactId>whitesource-analysis-via</artifactId>
-                 </exclusion>
-                 <exclusion>
-                     <groupId>org.whitesource</groupId>
-                     <artifactId>wss-agent-via-api</artifactId>
-                 </exclusion>-->
             </exclusions>
         </dependency>
-        <dependency>
 
+        <dependency>
             <groupId>org.jenkins-ci.main</groupId>
             <artifactId>maven-plugin</artifactId>
             <version>2.17</version>
@@ -206,15 +176,30 @@
                 <groupId>org.jenkins-ci.tools</groupId>
                 <artifactId>maven-hpi-plugin</artifactId>
                 <version>1.112</version>
-                <configuration>
-                    <pluginFirstClassLoader>true</pluginFirstClassLoader>
-                </configuration>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <pluginFirstClassLoader>true</pluginFirstClassLoader>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <!-- remove banned dependencies -->
+                                        <exclude>org.slf4j:slf4j-jdk14:*:jar:compile</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.5.3</version>
             </plugin>
+
         </plugins>
         <pluginManagement>
             <plugins>
@@ -241,7 +226,12 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>findbugs-maven-plugin</artifactId>
-                    <version>3.0.3</version>
+                    <version>3.0.5</version>
+                    <configuration>
+                        <xmlOutput>true</xmlOutput>
+                        <!-- Optional directory to put findbugs xdoc xml report -->
+                        <xmlOutputDirectory>target/site</xmlOutputDirectory>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

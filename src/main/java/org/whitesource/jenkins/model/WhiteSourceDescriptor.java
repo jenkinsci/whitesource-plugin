@@ -14,6 +14,7 @@ public class WhiteSourceDescriptor {
 
     private String serviceUrl;
     private String apiToken;
+    private String userKey;
     private String checkPolicies;
     private boolean globalForceUpdate;
     private boolean failOnError;
@@ -29,6 +30,7 @@ public class WhiteSourceDescriptor {
     public WhiteSourceDescriptor(WhiteSourcePublisher.DescriptorImpl descriptor) {
         this.serviceUrl = descriptor.getServiceUrl();
         this.apiToken = descriptor.getApiToken();
+        this.userKey = descriptor.getUserKey();
         this.checkPolicies = descriptor.getCheckPolicies();
         this.globalForceUpdate = descriptor.isGlobalForceUpdate();
         this.failOnError = descriptor.isFailOnError();
@@ -43,6 +45,7 @@ public class WhiteSourceDescriptor {
     public WhiteSourceDescriptor(WhiteSourcePipelineStep.DescriptorImpl descriptor) {
         this.serviceUrl = descriptor.getServiceUrl();
         this.apiToken = descriptor.getApiToken();
+        this.userKey = descriptor.getUserKey();
         this.checkPolicies = descriptor.getCheckPolicies();
         this.globalForceUpdate = descriptor.isGlobalForceUpdate();
         this.failOnError = descriptor.isFailOnError();
@@ -68,9 +71,11 @@ public class WhiteSourceDescriptor {
         return apiToken;
     }
 
-    public void setApiToken(String apiToken) {
-        this.apiToken = apiToken;
-    }
+    public void setApiToken(String apiToken) { this.apiToken = apiToken; }
+
+    public String getUserKey() { return userKey; }
+
+    public void setUserKey(String userKey) { this.userKey = userKey; }
 
     public String getCheckPolicies() {
         return checkPolicies;

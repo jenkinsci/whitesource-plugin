@@ -59,6 +59,8 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
     private String jobApiToken;
 
+    private String jobUserKey;
+
     private String product;
 
     private String productVersion;
@@ -87,6 +89,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
     public WhiteSourcePublisher(String jobCheckPolicies,
                                 String jobForceUpdate,
                                 String jobApiToken,
+                                String jobUserKey,
                                 String product,
                                 String productVersion,
                                 String projectToken,
@@ -102,6 +105,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         this.jobCheckPolicies = jobCheckPolicies;
         this.jobForceUpdate = jobForceUpdate;
         this.jobApiToken = jobApiToken;
+        this.jobUserKey = jobUserKey;
         this.product = product;
         this.productVersion = productVersion;
         this.projectToken = projectToken;
@@ -173,6 +177,8 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
         private String apiToken;
 
+        private String userKey;
+
         private String checkPolicies;
 
         private boolean globalForceUpdate;
@@ -221,6 +227,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
             apiToken = json.getString(API_TOKEN);
+            userKey =json.getString(USER_KEY);
             serviceUrl  = json.getString(SERVICE_URL);
             checkPolicies = json.getString(CHECK_POLICIES);
             failOnError = json.getBoolean(FAIL_ON_ERROR);
@@ -271,6 +278,10 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         public void setApiToken(String apiToken) {
             this.apiToken = apiToken;
         }
+
+        public String getUserKey() { return userKey; }
+
+        public void setUserKey(String userKey) { this.userKey = userKey; }
 
         public String getCheckPolicies() {
             return checkPolicies;
@@ -346,6 +357,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
     private void checkEnvironmentVariables(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
         this.jobApiToken = extractEnvironmentVariables(run, listener, this.jobApiToken);
+        this.jobUserKey = extractEnvironmentVariables(run, listener, this.jobUserKey);
         this.product = extractEnvironmentVariables(run, listener, this.product);
         this.productVersion = extractEnvironmentVariables(run, listener, this.productVersion);
         this.projectToken = extractEnvironmentVariables(run, listener, this.projectToken);
@@ -392,6 +404,8 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
     public String getJobApiToken() {
         return jobApiToken;
     }
+
+    public String getJobUserKey() { return jobUserKey; }
 
     public String getProduct() {
         return product;

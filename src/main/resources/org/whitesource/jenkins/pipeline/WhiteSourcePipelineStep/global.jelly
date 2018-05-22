@@ -10,6 +10,10 @@
                 help="/plugin/whitesource/help/help-apiToken.html">
             <f:textbox/>
         </f:entry>
+        <f:entry title="User key" field="userKey"
+                                help="/plugin/whitesource/help/help-userToken.html">
+                <f:textbox/>
+        </f:entry>
         <f:entry title="Service url" field="serviceUrl"
                 help="/plugin/whitesource/help/help-serviceUrl.html">
             <f:textbox/>

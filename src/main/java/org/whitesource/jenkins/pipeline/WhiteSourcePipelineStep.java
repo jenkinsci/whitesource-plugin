@@ -59,6 +59,8 @@ public class WhiteSourcePipelineStep extends Step {
 
     private String jobApiToken;
 
+    private String jobUserKey;
+
     private String projectToken;
 
     private String requesterEmail;
@@ -73,6 +75,7 @@ public class WhiteSourcePipelineStep extends Step {
     public WhiteSourcePipelineStep(String jobCheckPolicies,
                                    String jobForceUpdate,
                                    String jobApiToken,
+                                   String jobUserKey,
                                    String product,
                                    String productVersion,
                                    String projectToken,
@@ -83,6 +86,7 @@ public class WhiteSourcePipelineStep extends Step {
         this.jobCheckPolicies = jobCheckPolicies;
         this.jobForceUpdate = jobForceUpdate;
         this.jobApiToken = jobApiToken;
+        this.jobUserKey = jobUserKey;
         this.product = product;
         this.productVersion = productVersion;
         this.projectToken = projectToken;
@@ -145,6 +149,11 @@ public class WhiteSourcePipelineStep extends Step {
         this.jobApiToken = jobApiToken;
     }
 
+    public String getJobUserKey() { return jobUserKey; }
+
+    @DataBoundSetter
+    public void setJobUserKey(String jobUserKey) { this.jobUserKey = jobUserKey; }
+
     public String getProjectToken() {
         return projectToken;
     }
@@ -190,6 +199,7 @@ public class WhiteSourcePipelineStep extends Step {
 
         private String serviceUrl;
         private String apiToken;
+        private String userKey;
         private String pipelineCheckPolicies;
         private boolean globalForceUpdate;
         private boolean failOnError;
@@ -231,6 +241,7 @@ public class WhiteSourcePipelineStep extends Step {
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
             serviceUrl = json.getString(SERVICE_URL);
             apiToken = json.getString(API_TOKEN);
+            userKey = json.getString(USER_KEY);
             pipelineCheckPolicies = json.getString(PIPELINE_CHECK_POLICIES);
             failOnError = json.getBoolean(FAIL_ON_ERROR);
             globalForceUpdate = json.getBoolean(GLOBAL_FORCE_UPDATE);
@@ -279,6 +290,10 @@ public class WhiteSourcePipelineStep extends Step {
         public void setApiToken(String apiToken) {
             this.apiToken = apiToken;
         }
+
+        public String getUserKey() { return userKey; }
+
+        public void setUserKey(String userKey) { this.userKey = userKey; }
 
         public String getCheckPolicies() {
             return pipelineCheckPolicies;

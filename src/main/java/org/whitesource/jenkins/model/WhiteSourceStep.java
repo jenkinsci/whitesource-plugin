@@ -5,12 +5,12 @@ import hudson.ProxyConfiguration;
 import hudson.Util;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowExecution;
 import org.jenkinsci.plugins.workflow.flow.FlowExecution;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import org.springframework.util.CollectionUtils;
 import org.whitesource.agent.FileSystemScanner;
 import org.whitesource.agent.api.dispatch.CheckPolicyComplianceResult;
 import org.whitesource.agent.api.dispatch.UpdateInventoryResult;
@@ -19,8 +19,8 @@ import org.whitesource.agent.api.model.Coordinates;
 import org.whitesource.agent.api.model.DependencyInfo;
 import org.whitesource.agent.client.WhitesourceService;
 import org.whitesource.agent.client.WssServiceException;
-import org.whitesource.agent.dependency.resolver.DependencyResolutionService;
 import org.whitesource.agent.report.PolicyCheckReport;
+import org.whitesource.fs.FSAConfiguration;
 import org.whitesource.jenkins.Constants;
 import org.whitesource.jenkins.PolicyCheckReportAction;
 import org.whitesource.jenkins.WhiteSourcePublisher;
@@ -51,12 +51,14 @@ public class WhiteSourceStep {
     private static final String PLUGIN_VERSION = "18.4.1";
     public static final String WITH_MAVEN = "withMaven";
     public static final String GENERIC_GLOB_PATTERN = "**/*.";
+    public static final String COMMA = ",";
 
     /* --- Members --- */
 
     private WhiteSourceDescriptor globalConfig;
 
     private String jobApiToken;
+    private String jobUserKey;
     private String product;
     private String productVersion;
     private String projectToken;
@@ -76,15 +78,16 @@ public class WhiteSourceStep {
 
     /* --- Constructor --- */
 
-    public WhiteSourceStep(WhiteSourceDescriptor globalConfig, String jobApiToken, String jobForceUpdate, String jobCheckPolicies) {
+    public WhiteSourceStep(WhiteSourceDescriptor globalConfig, String jobApiToken, String jobForceUpdate, String jobCheckPolicies, String jobUserKey) {
         this.globalConfig = globalConfig;
         setApiToken(jobApiToken);
+        setUserKey(jobUserKey);
         isForceUpdate(jobForceUpdate);
         isCheckPolicies(jobCheckPolicies);
     }
 
     public WhiteSourceStep(WhiteSourcePublisher publisher, WhiteSourceDescriptor globalConfig) {
-        this(globalConfig, publisher.getJobApiToken(), publisher.getJobForceUpdate(), publisher.getJobCheckPolicies());
+        this(globalConfig, publisher.getJobApiToken(), publisher.getJobForceUpdate(), publisher.getJobCheckPolicies(), publisher.getJobUserKey());
         this.product = publisher.getProduct();
         this.productVersion = publisher.getProductVersion();
         this.projectToken = publisher.getProjectToken();
@@ -99,7 +102,7 @@ public class WhiteSourceStep {
     }
 
     public WhiteSourceStep(WhiteSourcePipelineStep step, WhiteSourceDescriptor globalConfig) {
-        this(globalConfig, step.getJobApiToken(), step.getJobForceUpdate(), step.getJobCheckPolicies());
+        this(globalConfig, step.getJobApiToken(), step.getJobForceUpdate(), step.getJobCheckPolicies(), step.getJobUserKey());
         this.product = step.getProduct();
         this.productVersion = step.getProductVersion();
         this.projectToken = step.getProjectToken();
@@ -117,7 +120,7 @@ public class WhiteSourceStep {
             if (shouldCheckPolicies) {
                 logger.println("Checking policies");
                 CheckPolicyComplianceResult result = service.checkPolicyCompliance(jobApiToken, productNameOrToken,
-                        productVersion, projectInfos, checkAllLibraries);
+                        productVersion, projectInfos, checkAllLibraries, jobUserKey);
                 policyCheckReport(result, run, listener);
                 boolean hasRejections = result.hasRejections();
                 String message;
@@ -133,13 +136,13 @@ public class WhiteSourceStep {
                             " were force updated to organization inventory." :
                             "All dependencies conform with open source policies.";
                     logger.println(message);
-                    sendUpdate(jobApiToken, requesterEmail, productNameOrToken, projectInfos, service, logger, productVersion);
+                    sendUpdate(jobApiToken, requesterEmail, productNameOrToken, projectInfos, service, logger, productVersion, jobUserKey);
                     if (globalConfig.isFailOnError() && hasRejections) {
                         stopBuild(run, listener, "White Source Publisher failure");
                     }
                 }
             } else {
-                sendUpdate(jobApiToken, requesterEmail, productNameOrToken, projectInfos, service, logger, productVersion);
+                sendUpdate(jobApiToken, requesterEmail, productNameOrToken, projectInfos, service, logger, productVersion, jobUserKey);
             }
         } catch (WssServiceException | IOException | RuntimeException e) {
             stopBuildOnError(run, globalConfig.isFailOnError(), listener, e);
@@ -265,9 +268,9 @@ public class WhiteSourceStep {
                             String productNameOrToken,
                             Collection<AgentProjectInfo> projectInfos,
                             WhitesourceService service,
-                            PrintStream logger, String productVersion) throws WssServiceException {
+                            PrintStream logger, String productVersion, String userKey) throws WssServiceException {
         logger.println("Sending to White Source");
-        UpdateInventoryResult updateResult = service.update(orgToken, requesterEmail, productNameOrToken, productVersion, projectInfos);
+        UpdateInventoryResult updateResult = service.update(orgToken, requesterEmail, productNameOrToken, productVersion, projectInfos, userKey);
         logUpdateResult(updateResult, logger);
     }
 
@@ -278,6 +281,12 @@ public class WhiteSourceStep {
         e.printStackTrace(listener.fatalError("White Source Publisher failure"));
         if (failOnError) {
             run.setResult(Result.FAILURE);
+        }
+        if (e instanceof WssServiceException) {
+            String requestToken = ((WssServiceException) e).getRequestToken();
+            if (StringUtils.isNotBlank(requestToken)) {
+                listener.getLogger().println("Support Token: " + requestToken);
+            }
         }
     }
 
@@ -295,6 +304,10 @@ public class WhiteSourceStep {
 
     private void setApiToken(String jobApiToken) {
         this.jobApiToken = StringUtils.isNotBlank(jobApiToken) ? jobApiToken : globalConfig.getApiToken();
+    }
+
+    private void setUserKey(String jobUerKey) {
+        this.jobUserKey = StringUtils.isNotBlank(jobUerKey) ? jobUerKey : globalConfig.getUserKey();
     }
 
     private void isCheckPolicies(String jobCheckPolicies) {
@@ -371,6 +384,14 @@ public class WhiteSourceStep {
 
     public void setJobApiToken(String jobApiToken) {
         this.jobApiToken = jobApiToken;
+    }
+
+    public String getJobUserKey() {
+        return jobUserKey;
+    }
+
+    public void setJobUserKey(String jobUserKey) {
+        this.jobUserKey = jobUserKey;
     }
 
     public String getProduct() {
@@ -510,13 +531,16 @@ public class WhiteSourceStep {
         List<String> paths = new ArrayList<>();
         paths.add(workspace.getRemote());
         List<DependencyInfo> dependencyInfos = null;
+        FSAConfiguration fsaConfiguration = new FSAConfiguration(props);
         // initialize libIncludes if the user didn't insert any extensions
         if (StringUtils.isEmpty(libIncludes)) {
             initializeIncludes();
+            libIncludes = libIncludes.replaceAll(COMMA, SPACE);
         }
+
         try {
-            FileSystemScanner fileSystemScanner = new FileSystemScanner(false, new DependencyResolutionService(props));
-            dependencyInfos = fileSystemScanner.createProjects(paths, false, libIncludes.split(SPACE), libExcludes.split(SPACE), false, 0, null, null, false, false, null, false);
+            FileSystemScanner fileSystemScanner = new FileSystemScanner(fsaConfiguration.getResolver(), fsaConfiguration.getAgent(), false);
+            dependencyInfos = fileSystemScanner.createProjects(paths, new HashMap<>(), false, libIncludes.split(SPACE), libExcludes.split(COMMA), false, 0, null, null, false, false, null, false);
             logger.println("Found " + dependencyInfos.size() + "dependencies .");
         } catch (Exception ex) {
             logger.println("Error getting FSA dependencies " + ex.toString());
