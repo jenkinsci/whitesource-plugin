@@ -47,8 +47,8 @@ public class WhiteSourceStep {
     /* --- Static members --- */
 
     public static final String SPACE = " ";
-    private static final String PLUGIN_AGENTS_VERSION = "2.4.6";
-    private static final String PLUGIN_VERSION = "18.4.1";
+    private static final String PLUGIN_AGENTS_VERSION = "2.7.0";
+    private static final String PLUGIN_VERSION = "18.5.1";
     public static final String WITH_MAVEN = "withMaven";
     public static final String GENERIC_GLOB_PATTERN = "**/*.";
     public static final String COMMA = ",";
