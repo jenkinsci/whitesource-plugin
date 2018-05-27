@@ -537,10 +537,12 @@ public class WhiteSourceStep {
             initializeIncludes();
             libIncludes = libIncludes.replaceAll(COMMA, SPACE);
         }
-
+        Map<String, Set<String>> appPathsToDependencyDirs = new HashMap<>();
         try {
             FileSystemScanner fileSystemScanner = new FileSystemScanner(fsaConfiguration.getResolver(), fsaConfiguration.getAgent(), false);
-            dependencyInfos = fileSystemScanner.createProjects(paths, new HashMap<>(), false, libIncludes.split(SPACE), libExcludes.split(COMMA), false, 0, null, null, false, false, null, false);
+            dependencyInfos = fileSystemScanner.createProjects(paths, appPathsToDependencyDirs, false, libIncludes.split(SPACE), libExcludes.split(COMMA),
+                    false, 0, null, null, false,
+                    false, null, false);
             logger.println("Found " + dependencyInfos.size() + "dependencies .");
         } catch (Exception ex) {
             logger.println("Error getting FSA dependencies " + ex.toString());
