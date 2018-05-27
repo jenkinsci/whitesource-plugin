@@ -81,7 +81,7 @@
         <jenkins.version>2.60.3</jenkins.version>
         <slf4j.version>1.7.5</slf4j.version>
         <java.level>8</java.level>
-        <agent.version>2.6.9</agent.version>
+        <agent.version>2.7.0</agent.version>
         <skipTests>true</skipTests>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -103,7 +103,7 @@
         <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>whitesource-fs-agent</artifactId>
-            <version>18.5.1-SNAPSHOT</version>
+            <version>18.5.1</version>
             <!-- Add again after the fsa will be update -->
             <exclusions>
                 <exclusion>
