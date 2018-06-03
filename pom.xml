@@ -77,8 +77,8 @@
     </developers>
 
     <properties>
-        <!--<jenkins.version>1.609.3</jenkins.version>-->
-        <jenkins.version>2.60.3</jenkins.version>
+        <jenkins.version>1.609.3</jenkins.version>
+        <!--<jenkins.version>2.60.3</jenkins.version>-->
         <slf4j.version>1.7.5</slf4j.version>
         <java.level>8</java.level>
         <agent.version>2.7.0</agent.version>
