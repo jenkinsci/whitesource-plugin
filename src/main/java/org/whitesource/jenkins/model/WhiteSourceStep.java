@@ -548,9 +548,12 @@ public class WhiteSourceStep {
             logger.println("Error getting FSA dependencies " + ex.toString());
         }
         AgentProjectInfo agentProjectInfo = new AgentProjectInfo();
-        agentProjectInfo.setCoordinates(new Coordinates(null, productNameOrToken, productVersion));
+        if (projectToken != null) {
+            agentProjectInfo.setProjectToken(projectToken); // WSE-494 fix
+        } else {
+            agentProjectInfo.setCoordinates(new Coordinates(null, productNameOrToken, productVersion));
+        }
         agentProjectInfo.setDependencies(dependencyInfos);
-        agentProjectInfo.setProjectToken(projectToken); // WSE-494 fix
         projects.add(agentProjectInfo);
         return projects;
     }
