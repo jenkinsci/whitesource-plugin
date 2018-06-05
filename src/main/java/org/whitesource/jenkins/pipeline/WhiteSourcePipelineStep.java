@@ -413,7 +413,6 @@ public class WhiteSourcePipelineStep extends Step {
             } else {
                 whiteSourceStep.update(run, listener, projectInfos);
             }
-
             return null;
         }
     }

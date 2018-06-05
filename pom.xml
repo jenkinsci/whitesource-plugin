@@ -14,7 +14,8 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -76,7 +77,9 @@
     </developers>
 
     <properties>
-        <jenkins.version>1.609.3</jenkins.version>
+        <!-- Minimal Jenkins version (2.14.0 ) required by for pipeline job -->
+        <jenkins.version>1.642.3</jenkins.version>
+        <!--<jenkins.version>1.609.3</jenkins.version>-->
         <!--<jenkins.version>2.60.3</jenkins.version>-->
         <slf4j.version>1.7.5</slf4j.version>
         <java.level>8</java.level>

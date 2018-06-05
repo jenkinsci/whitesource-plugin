@@ -550,8 +550,8 @@ public class WhiteSourceStep {
         AgentProjectInfo agentProjectInfo = new AgentProjectInfo();
         agentProjectInfo.setCoordinates(new Coordinates(null, productNameOrToken, productVersion));
         agentProjectInfo.setDependencies(dependencyInfos);
+        agentProjectInfo.setProjectToken(projectToken); // WSE-494 fix
         projects.add(agentProjectInfo);
-
         return projects;
     }
 }
