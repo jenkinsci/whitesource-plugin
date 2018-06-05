@@ -548,7 +548,6 @@ public class WhiteSourceStep {
             logger.println("Error getting FSA dependencies " + ex.toString());
         }
         AgentProjectInfo agentProjectInfo = new AgentProjectInfo();
-        logger.println("project token is :" + projectToken+ "bla");
         if (projectToken != null && (StringUtils.isNotBlank(projectToken))) {
             agentProjectInfo.setProjectToken(projectToken); // WSE-494 fix
         } else {
