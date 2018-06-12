@@ -197,6 +197,9 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
         private String connectionTimeout;
 
+        private String connectionRetries;
+
+        private String connectionRetriesInterval;
         /* --- Constructor --- */
 
         /**
@@ -245,6 +248,8 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
                 password = proxySettings.getString(PASSWORD);
             }
             connectionTimeout = json.getString(CONNECTION_TIMEOUT);
+            connectionRetries = json.getString(CONNECTION_RETRIES);
+            connectionRetriesInterval = json.getString(CONNECTION_RETRIES_INTERVAL);
             save();
 
             return super.configure(req, json);
@@ -258,6 +263,16 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
         public FormValidation doCheckConnectionTimeout(@QueryParameter String connectionTimeout) {
             FormValidation formValidation = FormValidation.validatePositiveInteger(connectionTimeout);
+            return formValidation;
+        }
+
+        public FormValidation doCheckConnectionRetries(@QueryParameter String connectionRetries) {
+            FormValidation formValidation = FormValidation.validateNonNegativeInteger(connectionRetries);
+            return formValidation;
+        }
+
+        public FormValidation doCheckConnectionRetriesInterval(@QueryParameter String connectionRetriesInterval) {
+            FormValidation formValidation = FormValidation.validateNonNegativeInteger(connectionRetriesInterval);
             return formValidation;
         }
 
@@ -349,6 +364,22 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
         public void setGlobalForceUpdate(boolean globalForceUpdate) {
             this.globalForceUpdate = globalForceUpdate;
+        }
+
+        public String getConnectionRetries() {
+            return connectionRetries;
+        }
+
+        public void setConnectionRetries(String connectionRetries) {
+            this.connectionRetries = connectionRetries;
+        }
+
+        public String getConnectionRetriesInterval() {
+            return connectionRetriesInterval;
+        }
+
+        public void setConnectionRetriesInterval(String connectionRetriesInterval) {
+            this.connectionRetriesInterval = connectionRetriesInterval;
         }
 
     }

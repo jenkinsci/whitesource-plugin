@@ -209,6 +209,8 @@ public class WhiteSourcePipelineStep extends Step {
         private String userName;
         private String password;
         private String connectionTimeout;
+        private String connectionRetries;
+        private String connectionRetriesInterval;
 
         /* --- Constructor --- */
 
@@ -257,6 +259,9 @@ public class WhiteSourcePipelineStep extends Step {
                 port = proxySettings.getString(PORT);
             }
             connectionTimeout = json.getString(CONNECTION_TIMEOUT);
+            connectionRetries = json.getString(CONNECTION_RETRIES);
+            connectionRetriesInterval = json.getString(CONNECTION_RETRIES_INTERVAL);
+
             save();
 
             return super.configure(req, json);
@@ -270,6 +275,16 @@ public class WhiteSourcePipelineStep extends Step {
 
         public FormValidation doCheckConnectionTimeout(@QueryParameter String connectionTimeout) {
             FormValidation formValidation = FormValidation.validatePositiveInteger(connectionTimeout);
+            return formValidation;
+        }
+
+        public FormValidation doCheckConnectionRetries(@QueryParameter String connectionRetries) {
+            FormValidation formValidation = FormValidation.validateNonNegativeInteger(connectionRetries);
+            return formValidation;
+        }
+
+        public FormValidation doCheckConnectionRetriesInterval(@QueryParameter String connectionRetriesInterval) {
+            FormValidation formValidation = FormValidation.validateNonNegativeInteger(connectionRetriesInterval);
             return formValidation;
         }
 
@@ -366,6 +381,23 @@ public class WhiteSourcePipelineStep extends Step {
         public void setGlobalForceUpdate(boolean globalForceUpdate) {
             this.globalForceUpdate = globalForceUpdate;
         }
+
+        public String getConnectionRetries() {
+            return connectionRetries;
+        }
+
+        public void setConnectionRetries(String connectionRetries) {
+            this.connectionRetries = connectionRetries;
+        }
+
+        public String getConnectionRetriesInterval() {
+            return connectionRetriesInterval;
+        }
+
+        public void setConnectionRetriesInterval(String connectionRetriesInterval) {
+            this.connectionRetriesInterval = connectionRetriesInterval;
+        }
+
     }
 
     private static class Execution extends SynchronousNonBlockingStepExecution<Void> {

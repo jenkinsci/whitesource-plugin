@@ -45,6 +45,16 @@ public final class Constants {
 	public static final String PORT = "port";
 	public static final String CONNECTION_TIMEOUT = "connectionTimeout";
 	public static final int DEFAULT_TIMEOUT = 60;
+	public static final String CONNECTION_RETRIES = "connectionRetries";
+	public static final int CONNECTION_RETRIES_DEFAULT = 1;
+	public static final String CONNECTION_RETRIES_INTERVAL = "connectionRetriesInterval";
+	public static final int CONNECTION_RETRIES_INTERVAL_DEFAULT = 3;
+
+	/* --- Other settings --- */
+
+	public static final String DOT = ".";
+	public static final String JAVA_NETWORKING = "java.net";
+	public static final String EMPTY_STRING = "";
 
 	/* --- Job settings --- */
 

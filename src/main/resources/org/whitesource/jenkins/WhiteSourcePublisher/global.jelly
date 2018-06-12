@@ -58,6 +58,14 @@
           help="/plugin/whitesource/help/connectionTimeout.html">
           <f:textbox  default="60"/>
         </f:entry>
+        <f:entry title="Connection Retries" field="connectionRetries"
+            help="/plugin/whitesource/help/help-connectionRetries.html">
+            <f:textbox  default="1"/>
+        </f:entry>
+        <f:entry title="Connection Retries Interval" field="connectionRetriesInterval"
+            help="/plugin/whitesource/help/help-connectionRetriesInterval.html">
+            <f:textbox  default="10"/>
+        </f:entry>
       </f:section>
     </f:block>
 </j:jelly>

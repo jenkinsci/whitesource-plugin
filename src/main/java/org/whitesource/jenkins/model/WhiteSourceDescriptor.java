@@ -24,6 +24,8 @@ public class WhiteSourceDescriptor {
     private String userName;
     private String password;
     private String connectionTimeout;
+    private String connectionRetries;
+    private String connectionRetriesInterval;
 
     /* --- Constructors --- */
 
@@ -40,6 +42,8 @@ public class WhiteSourceDescriptor {
         this.userName = descriptor.getUserName();
         this.password = descriptor.getPassword();
         this.connectionTimeout = descriptor.getConnectionTimeout();
+        this.connectionRetries = descriptor.getConnectionRetries();
+        this.connectionRetriesInterval = descriptor.getConnectionRetriesInterval();
     }
 
     public WhiteSourceDescriptor(WhiteSourcePipelineStep.DescriptorImpl descriptor) {
@@ -55,6 +59,8 @@ public class WhiteSourceDescriptor {
         this.userName = descriptor.getUserName();
         this.password = descriptor.getPassword();
         this.connectionTimeout = descriptor.getConnectionTimeout();
+        this.connectionRetries = descriptor.getConnectionRetries();
+        this.connectionRetriesInterval = descriptor.getConnectionRetriesInterval();
     }
 
     /* --- Getters / Setters --- */
@@ -148,4 +154,21 @@ public class WhiteSourceDescriptor {
     public void setConnectionTimeout(String connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
     }
+
+    public String getConnectionRetries() {
+        return connectionRetries;
+    }
+
+    public void setConnectionRetries(String connectionRetries) {
+        this.connectionRetries = connectionRetries;
+    }
+
+    public String getConnectionRetriesInterval() {
+        return connectionRetriesInterval;
+    }
+
+    public void setConnectionRetriesInterval(String connectionRetriesInterval) {
+        this.connectionRetriesInterval = connectionRetriesInterval;
+    }
+
 }

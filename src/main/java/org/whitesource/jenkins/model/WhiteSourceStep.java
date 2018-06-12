@@ -270,7 +270,38 @@ public class WhiteSourceStep {
                             WhitesourceService service,
                             PrintStream logger, String productVersion, String userKey) throws WssServiceException {
         logger.println("Sending to White Source");
-        UpdateInventoryResult updateResult = service.update(orgToken, requesterEmail, productNameOrToken, productVersion, projectInfos, userKey);
+
+        int retries =  Integer.parseInt(globalConfig.getConnectionRetries());
+        int interval = Integer.parseInt(globalConfig.getConnectionRetriesInterval());
+
+
+        UpdateInventoryResult updateResult = null;
+        while (retries-- > -1) {
+            try {
+                updateResult = service.update(orgToken, requesterEmail, productNameOrToken, productVersion, projectInfos, userKey);
+                if(updateResult != null) {
+                    break;
+                }
+            } catch (WssServiceException e) {
+                logger.println("Failed to send request to WhiteSource server: " + e.getMessage());
+                if (e.getCause() != null &&
+                        e.getCause().getClass().getCanonicalName().substring(0, e.getCause().getClass().getCanonicalName().lastIndexOf(Constants.DOT)).equals(Constants.JAVA_NETWORKING)) {
+                    //statusCode = StatusCode.CONNECTION_FAILURE;
+                    logger.println("Trying " + (retries + 1) + " more time" + (retries != 0 ? "s" : Constants.EMPTY_STRING));
+                } else {
+                    //statusCode = StatusCode.SERVER_FAILURE;
+                    retries = -1;
+                }
+
+                if (retries > -1) {
+                    try {
+                        Thread.sleep(interval*1000);
+                    } catch (InterruptedException e1) {
+                        logger.println("Failed to sleep while retrying to connect to server " + e1.getMessage());
+                    }
+                }
+            }
+        }
         logUpdateResult(updateResult, logger);
     }
 
