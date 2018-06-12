@@ -46,9 +46,7 @@ public final class Constants {
 	public static final String CONNECTION_TIMEOUT = "connectionTimeout";
 	public static final int DEFAULT_TIMEOUT = 60;
 	public static final String CONNECTION_RETRIES = "connectionRetries";
-	public static final int CONNECTION_RETRIES_DEFAULT = 1;
 	public static final String CONNECTION_RETRIES_INTERVAL = "connectionRetriesInterval";
-	public static final int CONNECTION_RETRIES_INTERVAL_DEFAULT = 3;
 
 	/* --- Other settings --- */
 

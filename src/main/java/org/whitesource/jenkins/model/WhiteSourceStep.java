@@ -302,7 +302,11 @@ public class WhiteSourceStep {
                 }
             }
         }
-        logUpdateResult(updateResult, logger);
+        if (updateResult != null) {
+            logUpdateResult(updateResult, logger);
+        } else {
+            throw new WssServiceException("Connection Failed");
+        }
     }
 
     private void stopBuildOnError(Run<?, ?> run, boolean failOnError, TaskListener listener, Exception e) {
