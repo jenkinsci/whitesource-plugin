@@ -64,7 +64,7 @@
         </f:entry>
         <f:entry title="Connection Retries Interval" field="connectionRetriesInterval"
             help="/plugin/whitesource/help/help-connectionRetriesInterval.html">
-            <f:textbox  default="10"/>
+            <f:textbox  default="3"/>
         </f:entry>
       </f:section>
     </f:block>
