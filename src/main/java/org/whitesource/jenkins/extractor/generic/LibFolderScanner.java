@@ -30,6 +30,7 @@ import org.whitesource.jenkins.model.RemoteDependency;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.IllegalArgumentException;
 import java.util.*;
 
 /**
@@ -137,6 +138,8 @@ public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<Remot
 					superHash.append(superHashResult.getFullHash());
 				}
 			} catch (IOException err) {
+				listener.getLogger().println("Error calculating fullHash for {}, Error - " + file.getName() + err.getMessage());
+			} catch (IllegalArgumentException err) {
 				listener.getLogger().println("Error calculating fullHash for {}, Error - " + file.getName() + err.getMessage());
 			}
 		}
