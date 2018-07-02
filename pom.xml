@@ -11,7 +11,7 @@
   ~ distributed under the License is distributed on an "AS IS" BASIS,
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ limitations under the Licens
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -24,7 +24,7 @@
     </parent>
 
     <artifactId>whitesource</artifactId>
-    <version>18.6.2-SNAPSHOT</version>
+    <version>18.6.3-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <name>White Source Jenkins plugin</name>
@@ -78,11 +78,11 @@
     <properties>
         <!-- Minimal Jenkins version (2.14.0 ) required by for pipeline job -->
         <jenkins.version>1.642.3</jenkins.version>
-        <!--<jenkins.version>1.609.3</jenkins.version>-->
+        <!--<jenkins.version>2.14</jenkins.version>-->
         <!--<jenkins.version>2.60.3</jenkins.version>-->
         <slf4j.version>1.7.5</slf4j.version>
         <java.level>8</java.level>
-        <agent.version>2.7.0</agent.version>
+        <agent.version>2.7.6</agent.version>
         <skipTests>true</skipTests>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -104,7 +104,7 @@
         <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>whitesource-fs-agent</artifactId>
-            <version>18.5.1</version>
+            <version>18.6.3-SNAPSHOT</version>
             <!-- Add again after the fsa will be update -->
             <exclusions>
                 <exclusion>

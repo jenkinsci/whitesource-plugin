@@ -402,6 +402,8 @@ public class WhiteSourcePipelineStep extends Step {
 
     private static class Execution extends SynchronousNonBlockingStepExecution<Void> {
 
+        private static final long serialVersionUID = 8178356851772162243L;
+
         /* --- Members --- */
 
         private transient final WhiteSourcePipelineStep step;
@@ -437,10 +439,11 @@ public class WhiteSourcePipelineStep extends Step {
 
             FilePath workspace = getContext().get(FilePath.class);
             Collection<AgentProjectInfo> projectInfos = whiteSourceStep.getProjectInfos(run, listener, workspace, true);
-            if (projectInfos == null) {
-                whiteSourceStep.stopBuild(run, listener, "Unrecognized build type " + run.getClass().getName());
-                return null;
-            } else if (projectInfos.isEmpty()) {
+//            if (projectInfos == null) {
+//                whiteSourceStep.stopBuild(run, listener, "Unrecognized build type " + run.getClass().getName());
+//                return null;
+//            } else
+            if (projectInfos.isEmpty()) {
                 logger.println(OSS_INFO_NOT_FOUND);
             } else {
                 whiteSourceStep.update(run, listener, projectInfos);

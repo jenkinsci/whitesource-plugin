@@ -167,7 +167,10 @@ public class WhiteSourceStep {
         } else if (run instanceof FreeStyleBuild || isFreeStyleStep) {
             if (run instanceof WorkflowRun) {
                 FlowExecution exec = ((WorkflowRun) run).getExecution();
-                String script = ((CpsFlowExecution) exec).getScript();
+                String script = "";
+                if (exec != null) {
+                    script = ((CpsFlowExecution) exec).getScript();
+                }
                 if (StringUtils.isNotBlank(script) && script.contains(WITH_MAVEN)) {
                     // maven pipeline job
                     // todo: check JEP-200 compatibility

@@ -125,7 +125,6 @@ public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<Remot
 		info.setOtherPlatformSha1(otherPlatformSha1);
 
 		// super hash
-		StringBuilder superHash = new StringBuilder(EMPTY_STRING);
 		HashCalculator superHashCalculator = new HashCalculator();
 		if (!file.getName().toLowerCase().matches(FileExtensions.BINARY_FILE_EXTENSION_REGEX)) {
 			try {
@@ -134,7 +133,6 @@ public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<Remot
 					info.setFullHash(superHashResult.getFullHash());
 					info.setMostSigBitsHash(superHashResult.getMostSigBitsHash());
 					info.setLeastSigBitsHash(superHashResult.getLeastSigBitsHash());
-					superHash.append(superHashResult.getFullHash());
 				}
 			} catch (IOException err) {
 				listener.getLogger().println("Error calculating fullHash for {}, Error - " + file.getName() + err.getMessage());

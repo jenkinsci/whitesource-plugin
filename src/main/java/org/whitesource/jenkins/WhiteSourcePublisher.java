@@ -150,10 +150,11 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         }
 
         Collection<AgentProjectInfo> projectInfos = whiteSourceStep.getProjectInfos(run, listener, workspace, false);
-        if (projectInfos == null) {
-            whiteSourceStep.stopBuild(run, listener, "Unrecognized build type " + run.getClass().getName());
-            return;
-        } else if (projectInfos.isEmpty()) {
+//        if (projectInfos == null) {
+//            whiteSourceStep.stopBuild(run, listener, "Unrecognized build type " + run.getClass().getName());
+//            return;
+//        } else
+        if (projectInfos.isEmpty()) {
             logger.println(OSS_INFO_NOT_FOUND);
         } else {
             whiteSourceStep.update(run, listener, projectInfos);
