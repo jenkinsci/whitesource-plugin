@@ -63,6 +63,8 @@ public class WhiteSourcePipelineStep extends Step {
 
     private String projectToken;
 
+    private String projectName;
+
     private String requesterEmail;
 
     private String libIncludes;
@@ -79,6 +81,7 @@ public class WhiteSourcePipelineStep extends Step {
                                    String product,
                                    String productVersion,
                                    String projectToken,
+                                   String projectName,
                                    String libIncludes,
                                    String libExcludes,
                                    String requesterEmail) {
@@ -90,6 +93,7 @@ public class WhiteSourcePipelineStep extends Step {
         this.product = product;
         this.productVersion = productVersion;
         this.projectToken = projectToken;
+        this.projectName = projectName;
         this.libIncludes = libIncludes;
         this.libExcludes = libExcludes;
         this.requesterEmail = requesterEmail;
@@ -161,6 +165,15 @@ public class WhiteSourcePipelineStep extends Step {
     @DataBoundSetter
     public void setProjectToken(String projectToken) {
         this.projectToken = projectToken;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    @DataBoundSetter
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public String getRequesterEmail() {

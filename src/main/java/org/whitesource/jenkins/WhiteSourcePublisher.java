@@ -67,6 +67,8 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
     private String projectToken;
 
+    private String projectName;
+
     private String libIncludes;
 
     private String libExcludes;
@@ -93,6 +95,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
                                 String product,
                                 String productVersion,
                                 String projectToken,
+                                String projectName,
                                 String libIncludes,
                                 String libExcludes,
                                 String mavenProjectToken,
@@ -109,6 +112,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         this.product = product;
         this.productVersion = productVersion;
         this.projectToken = projectToken;
+        this.projectName = projectName;
         this.libIncludes = libIncludes;
         this.libExcludes = libExcludes;
         this.mavenProjectToken = mavenProjectToken;
@@ -393,6 +397,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         this.product = extractEnvironmentVariables(run, listener, this.product);
         this.productVersion = extractEnvironmentVariables(run, listener, this.productVersion);
         this.projectToken = extractEnvironmentVariables(run, listener, this.projectToken);
+        this.projectName = extractEnvironmentVariables(run, listener, this.projectName);
         this.libIncludes = extractEnvironmentVariables(run, listener, this.libIncludes);
         this.libExcludes = extractEnvironmentVariables(run, listener, this.libExcludes);
         this.requesterEmail = extractEnvironmentVariables(run, listener, this.requesterEmail);
@@ -449,6 +454,10 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
     public String getProjectToken() {
         return projectToken;
+    }
+
+    public String getProjectName() {
+        return projectName;
     }
 
     public String getLibIncludes() {

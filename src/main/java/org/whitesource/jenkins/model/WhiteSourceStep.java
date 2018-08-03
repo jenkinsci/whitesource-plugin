@@ -62,6 +62,7 @@ public class WhiteSourceStep {
     private String product;
     private String productVersion;
     private String projectToken;
+    private String projectName;
     private String libIncludes;
     private String libExcludes;
     private String mavenProjectToken;
@@ -91,6 +92,7 @@ public class WhiteSourceStep {
         this.product = publisher.getProduct();
         this.productVersion = publisher.getProductVersion();
         this.projectToken = publisher.getProjectToken();
+        this.projectName = publisher.getProjectName();
         this.libIncludes = publisher.getLibIncludes();
         this.libExcludes = publisher.getLibExcludes();
         this.mavenProjectToken = publisher.getMavenProjectToken();
@@ -106,6 +108,7 @@ public class WhiteSourceStep {
         this.product = step.getProduct();
         this.productVersion = step.getProductVersion();
         this.projectToken = step.getProjectToken();
+        this.projectName = step.getProjectName();
         this.libIncludes = step.getLibIncludes();
         this.libExcludes = step.getLibExcludes();
         this.requesterEmail = step.getRequesterEmail();
@@ -204,7 +207,7 @@ public class WhiteSourceStep {
     private Collection<AgentProjectInfo> getGenericProjectInfos(Run<?, ?> run, TaskListener listener, FilePath workspace, PrintStream logger) throws InterruptedException, IOException {
         Collection<AgentProjectInfo> projectInfos;
         logger.println("Starting generic job on " + workspace.getRemote());
-        GenericOssInfoExtractor extractor = new GenericOssInfoExtractor(libIncludes, libExcludes, run, listener, projectToken, workspace);
+        GenericOssInfoExtractor extractor = new GenericOssInfoExtractor(libIncludes, libExcludes, run, listener, projectToken, projectName, workspace);
         projectInfos = extractor.extract();
         return projectInfos;
     }
@@ -454,6 +457,14 @@ public class WhiteSourceStep {
 
     public void setProjectToken(String projectToken) {
         this.projectToken = projectToken;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public String getLibIncludes() {
