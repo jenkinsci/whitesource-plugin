@@ -108,14 +108,6 @@
             <!-- Add again after the fsa will be update -->
             <exclusions>
                 <exclusion>
-                    <groupId>org.whitesource.analysis</groupId>
-                    <artifactId>whitesource-analysis-via</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.whitesource</groupId>
-                    <artifactId>wss-agent-via-api</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>ch.qos.logback</groupId>
                     <artifactId>logback-classic</artifactId>
                 </exclusion>

@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,13 +25,14 @@ import java.util.List;
  */
 public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
 
-    public static final List<String> DEFAULT_SCAN_EXTENSIONS =  Arrays.asList("jar", "war", "ear", "par", "rar",
-            "dll", "exe", "ko", "so", "msi", "zip", "tar", "tar.gz", "swc", "swf");
-
+    public static final List<String> DEFAULT_SCAN_EXTENSIONS =  Collections.unmodifiableList(
+       Arrays.asList("jar", "war", "ear", "par", "rar", "dll", "exe", "ko", "so", "msi", "zip", "tar", "tar.gz", "swc", "swf")
+    );
 
     /* --- Members --- */
 
     private final String projectToken;
+    private final String projectName;
     private final FilePath workspace;
 
     /* --- Constructors --- */
@@ -39,9 +41,10 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
                                    String excludes,
                                    Run<?, ?> run,
                                    TaskListener listener,
-                                   String projectToken, FilePath workspace) {
+                                   String projectToken, String projectName, FilePath workspace) {
         super(includes, excludes, run, listener);
         this.projectToken = projectToken;
+        this.projectName = projectName;
         this.workspace = workspace;
     }
 
@@ -60,7 +63,8 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
         LibFolderScanner libScanner = new LibFolderScanner(includes, excludes, listener);
         AgentProjectInfo projectInfo = new AgentProjectInfo();
         if (StringUtils.isBlank(projectToken)) {
-            projectInfo.setCoordinates(new Coordinates(null, run.getParent().getName(), "build #" + run.getNumber()));
+            String projectName = StringUtils.isBlank(this.projectName) ? run.getParent().getName() : this.projectName;
+            projectInfo.setCoordinates(new Coordinates(null, projectName, "build #" + run.getNumber()));
         } else {
             projectInfo.setProjectToken(projectToken);
         }
