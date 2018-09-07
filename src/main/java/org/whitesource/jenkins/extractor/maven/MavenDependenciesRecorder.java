@@ -76,26 +76,7 @@ public class MavenDependenciesRecorder extends MavenReporter {
     @Override
     public boolean postBuild(MavenBuildProxy build, MavenProject pom, BuildListener listener)
             throws InterruptedException, IOException {
-        build.executeAsync(new BuildCallable<Void, IOException>() {
-            
-        	/* --- Static members --- */
-			private static final long serialVersionUID = -3923086337535368565L;
-			
-			/* --- Members --- */
-			
-			// record is transient, so needs to make a copy first
-            private final Set<RemoteDependency> d = dependencies;
-            
-            /* --- Interface implementation methods --- */
-
-            public Void call(MavenBuild build) throws IOException, InterruptedException {
-                // add the action
-                //These actions are persisted into the build.xml of each build run - we need another
-                //context to store these actions
-                build.getActions().add(new MavenDependenciesRecord(d));
-                return null;
-            }
-        });
+        build.executeAsync(new PostBuildCallable());
         return true;
     }
     
@@ -144,5 +125,25 @@ public class MavenDependenciesRecorder extends MavenReporter {
             return new MavenDependenciesRecorder();
         }
     }
-    
+
+    private class PostBuildCallable implements BuildCallable<Void, IOException> {
+
+        /* --- Static members --- */
+        private static final long serialVersionUID = -3923086337535368565L;
+
+        /* --- Members --- */
+
+        // record is transient, so needs to make a copy first
+private final Set<RemoteDependency> d = dependencies;
+
+        /* --- Interface implementation methods --- */
+
+        public Void call(MavenBuild build) throws IOException, InterruptedException {
+            // add the action
+            //These actions are persisted into the build.xml of each build run - we need another
+            //context to store these actions
+            build.getActions().add(new MavenDependenciesRecord(d));
+            return null;
+        }
+    }
 }
