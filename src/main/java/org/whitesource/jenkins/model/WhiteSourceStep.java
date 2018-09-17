@@ -11,12 +11,13 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowExecution;
 import org.jenkinsci.plugins.workflow.flow.FlowExecution;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.whitesource.agent.ConfigPropertyKeys;
 import org.whitesource.agent.FileSystemScanner;
+import org.whitesource.agent.ViaComponents;
 import org.whitesource.agent.api.dispatch.CheckPolicyComplianceResult;
 import org.whitesource.agent.api.dispatch.UpdateInventoryResult;
 import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.agent.api.model.Coordinates;
-import org.whitesource.agent.api.model.DependencyInfo;
 import org.whitesource.agent.client.WhitesourceService;
 import org.whitesource.agent.client.WssServiceException;
 import org.whitesource.agent.report.PolicyCheckReport;
@@ -36,6 +37,7 @@ import java.net.URL;
 import java.util.*;
 
 import static org.whitesource.jenkins.Constants.*;
+
 
 /**
  * Holds job related configuration
@@ -281,6 +283,10 @@ public class WhiteSourceStep {
         UpdateInventoryResult updateResult = null;
         while (retries-- > -1) {
             try {
+                logger.println("Dat size man! its =" + projectInfos.size());
+                for (AgentProjectInfo projectInfo : projectInfos) {
+                    logger.println(" my project  "+ projectInfo.getCoordinates() + projectInfo.getProjectToken());
+                }
                 updateResult = service.update(orgToken, requesterEmail, productNameOrToken, productVersion, projectInfos, userKey);
                 if(updateResult != null) {
                     break;
@@ -564,11 +570,13 @@ public class WhiteSourceStep {
 
     public Collection<AgentProjectInfo> getFSAProjects(PrintStream logger, FilePath workspace) {
         List<AgentProjectInfo> projects = new ArrayList<>();
+        Map<AgentProjectInfo, LinkedList<ViaComponents>> fsaProjects = Collections.emptyMap();
         logger.println("Starting Pipeline-FSA job on " + workspace.getRemote());
         Properties props = new Properties();
         List<String> paths = new ArrayList<>();
         paths.add(workspace.getRemote());
-        List<DependencyInfo> dependencyInfos = null;
+
+        props.put(ConfigPropertyKeys.MAVEN_AGGREGATE_MODULES, "false");
         FSAConfiguration fsaConfiguration = new FSAConfiguration(props);
         // initialize libIncludes if the user didn't insert any extensions
         if (StringUtils.isEmpty(libIncludes)) {
@@ -576,23 +584,37 @@ public class WhiteSourceStep {
             libIncludes = libIncludes.replaceAll(COMMA, SPACE);
         }
         Map<String, Set<String>> appPathsToDependencyDirs = new HashMap<>();
+        appPathsToDependencyDirs.put(FSAConfiguration.DEFAULT_KEY, new HashSet<>());
+        appPathsToDependencyDirs.get(FSAConfiguration.DEFAULT_KEY).add(workspace.getRemote());
+
         try {
             FileSystemScanner fileSystemScanner = new FileSystemScanner(fsaConfiguration.getResolver(), fsaConfiguration.getAgent(), false);
-            dependencyInfos = fileSystemScanner.createProjects(paths, appPathsToDependencyDirs, false, libIncludes.split(SPACE), libExcludes.split(COMMA),
+            fsaProjects = fileSystemScanner.createProjects(paths, appPathsToDependencyDirs, false, libIncludes.split(SPACE), libExcludes.split(COMMA),
                     false, 0, null, null, false,
-                    false, null, false);
-            logger.println("Found " + dependencyInfos.size() + "dependencies .");
+                    false, null, false, false, false);
+            int dependencyCount = 0;
+            for (AgentProjectInfo agentProjectInfo : fsaProjects.keySet()) {
+                dependencyCount += agentProjectInfo.getDependencies().size();
+            }
+            logger.println("Found " + dependencyCount + " dependencies .");
         } catch (Exception ex) {
-            logger.println("Error getting FSA dependencies " + ex.toString());
+            for (StackTraceElement stackTraceElement : ex.getStackTrace()) {
+                logger.println("Error getting FSA dependencies " + stackTraceElement.toString()) ;
+            }
         }
-        AgentProjectInfo agentProjectInfo = new AgentProjectInfo();
-        if (projectToken != null && (StringUtils.isNotBlank(projectToken))) {
-            agentProjectInfo.setProjectToken(projectToken); // WSE-494 fix
-        } else {
-            agentProjectInfo.setCoordinates(new Coordinates(null, productNameOrToken, productVersion));
+        for (AgentProjectInfo agentProjectInfo : fsaProjects.keySet()) {
+            if (projectToken != null && (StringUtils.isNotBlank(projectToken))) {
+                agentProjectInfo.setProjectToken(projectToken); // WSE-494 fix
+            } else {
+                if (agentProjectInfo.getCoordinates() != null) {
+                    agentProjectInfo.setCoordinates(new Coordinates(null, agentProjectInfo.getCoordinates().getArtifactId(), productVersion));
+                } else {
+                    agentProjectInfo.setCoordinates(new Coordinates(null, productNameOrToken, productVersion));
+                }
+            }
+            projects.add(agentProjectInfo);
         }
-        agentProjectInfo.setDependencies(dependencyInfos);
-        projects.add(agentProjectInfo);
+
         return projects;
     }
 }
