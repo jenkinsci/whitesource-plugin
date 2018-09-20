@@ -38,7 +38,6 @@ import java.util.*;
 
 import static org.whitesource.jenkins.Constants.*;
 
-
 /**
  * Holds job related configuration
  *
@@ -283,10 +282,6 @@ public class WhiteSourceStep {
         UpdateInventoryResult updateResult = null;
         while (retries-- > -1) {
             try {
-                logger.println("Dat size man! its =" + projectInfos.size());
-                for (AgentProjectInfo projectInfo : projectInfos) {
-                    logger.println(" my project  "+ projectInfo.getCoordinates() + projectInfo.getProjectToken());
-                }
                 updateResult = service.update(orgToken, requesterEmail, productNameOrToken, productVersion, projectInfos, userKey);
                 if(updateResult != null) {
                     break;
