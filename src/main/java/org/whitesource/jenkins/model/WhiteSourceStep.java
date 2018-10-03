@@ -53,7 +53,8 @@ public class WhiteSourceStep {
     public static final String WITH_MAVEN = "withMaven";
     public static final String GENERIC_GLOB_PATTERN = "**/*.";
     public static final String COMMA = ",";
-
+    public static final String SLASH = "/";
+    public static final String AGENT_KEYWORD = "agent";
     /* --- Members --- */
 
     private WhiteSourceDescriptor globalConfig;
@@ -219,11 +220,15 @@ public class WhiteSourceStep {
 
     private WhitesourceService createServiceClient(PrintStream logger) {
         String url = globalConfig.getServiceUrl();
+        logger.println("WhiteSource Service URL:" + url);
         if (StringUtils.isNotBlank(url)) {
-            if (!url.endsWith("/")) {
-                url += "/";
+
+            if (!url.endsWith(AGENT_KEYWORD)) {
+                if (!url.endsWith(SLASH)) {
+                    url += SLASH;
+                }
+                url += AGENT_KEYWORD;
             }
-            url += "agent";
         }
         int connectionTimeout = DEFAULT_TIMEOUT;
         if (NumberUtils.isNumber(globalConfig.getConnectionTimeout())) {
