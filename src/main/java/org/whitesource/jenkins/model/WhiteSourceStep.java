@@ -582,7 +582,8 @@ public class WhiteSourceStep {
             libIncludes = libIncludes.replaceAll(COMMA, SPACE);
         }
         Map<String, Set<String>> appPathsToDependencyDirs = new HashMap<>();
-        appPathsToDependencyDirs.put(FSAConfiguration.DEFAULT_KEY, new HashSet<>());
+        Set<String> set = new HashSet<>();
+        appPathsToDependencyDirs.put(FSAConfiguration.DEFAULT_KEY, set);
         appPathsToDependencyDirs.get(FSAConfiguration.DEFAULT_KEY).add(workspace.getRemote());
 
         try {
