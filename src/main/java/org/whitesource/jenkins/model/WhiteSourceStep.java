@@ -173,7 +173,10 @@ public class WhiteSourceStep {
                 if (exec != null) {
                     script = ((CpsFlowExecution) exec).getScript();
                 }
-                if (StringUtils.isNotBlank(script) && script.contains(WITH_MAVEN)) {
+                //WSE-886 remove comments, withMaven can be commented out and still show in pipeline script
+                String withMavenChecker=script.replaceAll("(?sm)(^(?:\\s*)?((?:/\\*(?:\\*)?).*?(?<=\\*/))|(?://).*?(?<=$))", "");
+
+                if (StringUtils.isNotBlank(script) && withMavenChecker.contains(WITH_MAVEN)) {
                     // maven pipeline job
                     // todo: check JEP-200 compatibility
 
@@ -584,7 +587,8 @@ public class WhiteSourceStep {
             libIncludes = libIncludes.replaceAll(COMMA, SPACE);
         }
         Map<String, Set<String>> appPathsToDependencyDirs = new HashMap<>();
-        appPathsToDependencyDirs.put(FSAConfiguration.DEFAULT_KEY, new HashSet<>());
+        Set<String> set = new HashSet<>();
+        appPathsToDependencyDirs.put(FSAConfiguration.DEFAULT_KEY, set);
         appPathsToDependencyDirs.get(FSAConfiguration.DEFAULT_KEY).add(workspace.getRemote());
 
         try {
