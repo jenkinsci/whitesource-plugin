@@ -172,7 +172,10 @@ public class WhiteSourceStep {
                 if (exec != null) {
                     script = ((CpsFlowExecution) exec).getScript();
                 }
-                if (StringUtils.isNotBlank(script) && script.contains(WITH_MAVEN)) {
+                //WSE-886 remove comments, withMaven can be commented out and still show in pipeline script
+                String withMavenChecker=script.replaceAll("(?sm)(^(?:\\s*)?((?:/\\*(?:\\*)?).*?(?<=\\*/))|(?://).*?(?<=$))", "");
+
+                if (StringUtils.isNotBlank(script) && withMavenChecker.contains(WITH_MAVEN)) {
                     // maven pipeline job
                     // todo: check JEP-200 compatibility
 
