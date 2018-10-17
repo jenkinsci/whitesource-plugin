@@ -29,6 +29,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.whitesource.agent.api.model.AgentProjectInfo;
+import org.whitesource.jenkins.Constants;
 import org.whitesource.jenkins.model.WhiteSourceDescriptor;
 import org.whitesource.jenkins.model.WhiteSourceStep;
 
@@ -39,7 +40,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.whitesource.jenkins.Constants.*;
 
 /**
  * @author Itai Marko
@@ -241,26 +241,26 @@ public class WhiteSourcePipelineStep extends Step {
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-            serviceUrl = json.getString(SERVICE_URL);
-            apiToken = json.getString(API_TOKEN);
-            userKey = json.getString(USER_KEY);
-            pipelineCheckPolicies = json.getString(PIPELINE_CHECK_POLICIES);
-            failOnError = json.getBoolean(FAIL_ON_ERROR);
-            globalForceUpdate = json.getBoolean(GLOBAL_FORCE_UPDATE);
+            serviceUrl = json.getString(Constants.SERVICE_URL);
+            apiToken = json.getString(Constants.API_TOKEN);
+            userKey = json.getString(Constants.USER_KEY);
+            pipelineCheckPolicies = json.getString(Constants.PIPELINE_CHECK_POLICIES);
+            failOnError = json.getBoolean(Constants.FAIL_ON_ERROR);
+            globalForceUpdate = json.getBoolean(Constants.GLOBAL_FORCE_UPDATE);
 
-            JSONObject proxySettings = (JSONObject) json.get(PROXY_SETTINGS);
+            JSONObject proxySettings = (JSONObject) json.get(Constants.PROXY_SETTINGS);
             if (proxySettings == null) {
                 overrideProxySettings = false;
             } else {
                 overrideProxySettings = true;
-                userName = proxySettings.getString(USER_NAME);
-                password = proxySettings.getString(PASSWORD);
-                server = proxySettings.getString(SERVER);
-                port = proxySettings.getString(PORT);
+                userName = proxySettings.getString(Constants.USER_NAME);
+                password = proxySettings.getString(Constants.PASSWORD);
+                server = proxySettings.getString(Constants.SERVER);
+                port = proxySettings.getString(Constants.PORT);
             }
-            connectionTimeout = json.getString(CONNECTION_TIMEOUT);
-            connectionRetries = json.getString(CONNECTION_RETRIES);
-            connectionRetriesInterval = json.getString(CONNECTION_RETRIES_INTERVAL);
+            connectionTimeout = json.getString(Constants.CONNECTION_TIMEOUT);
+            connectionRetries = json.getString(Constants.CONNECTION_RETRIES);
+            connectionRetriesInterval = json.getString(Constants.CONNECTION_RETRIES_INTERVAL);
 
             save();
 
@@ -425,7 +425,7 @@ public class WhiteSourcePipelineStep extends Step {
             TaskListener listener = getContext().get(TaskListener.class);
             assert listener != null;
             PrintStream logger = listener.getLogger();
-            logger.println(UPDATING_WHITESOURCE);
+            logger.println(Constants.UPDATING_WHITESOURCE);
 
             Run run = getContext().get(Run.class);
 
@@ -433,7 +433,7 @@ public class WhiteSourcePipelineStep extends Step {
 
             // make sure we have an organization token
             if (StringUtils.isBlank(whiteSourceStep.getJobApiToken())) {
-                logger.println(INVALID_API_TOKEN);
+                logger.println(Constants.INVALID_API_TOKEN);
                 return null;
             }
 
@@ -444,7 +444,7 @@ public class WhiteSourcePipelineStep extends Step {
 //                return null;
 //            } else
             if (projectInfos.isEmpty()) {
-                logger.println(OSS_INFO_NOT_FOUND);
+                logger.println(Constants.OSS_INFO_NOT_FOUND);
             } else {
                 whiteSourceStep.update(run, listener, projectInfos);
             }

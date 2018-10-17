@@ -6,6 +6,7 @@ import hudson.Util;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowExecution;
@@ -21,6 +22,7 @@ import org.whitesource.agent.api.model.Coordinates;
 import org.whitesource.agent.client.WhitesourceService;
 import org.whitesource.agent.client.WssServiceException;
 import org.whitesource.agent.report.PolicyCheckReport;
+import org.whitesource.fs.FSAConfigProperties;
 import org.whitesource.fs.FSAConfiguration;
 import org.whitesource.jenkins.Constants;
 import org.whitesource.jenkins.PolicyCheckReportAction;
@@ -35,8 +37,6 @@ import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-
-import static org.whitesource.jenkins.Constants.*;
 
 /**
  * Holds job related configuration
@@ -233,7 +233,7 @@ public class WhiteSourceStep {
                 url += AGENT_KEYWORD;
             }
         }
-        int connectionTimeout = DEFAULT_TIMEOUT;
+        int connectionTimeout = Constants.DEFAULT_TIMEOUT;
         if (NumberUtils.isNumber(globalConfig.getConnectionTimeout())) {
             int connectionTimeoutInteger = Integer.parseInt(globalConfig.getConnectionTimeout());
             connectionTimeout = connectionTimeoutInteger > 0 ? connectionTimeoutInteger : connectionTimeout;
@@ -360,11 +360,11 @@ public class WhiteSourceStep {
     private void isCheckPolicies(String jobCheckPolicies) {
         if (StringUtils.isBlank(jobCheckPolicies) || Constants.GLOBAL.equals(jobCheckPolicies)) {
             String checkPolicies = globalConfig.getCheckPolicies();
-            shouldCheckPolicies = ENABLE_NEW.equals(checkPolicies) || ENABLE_ALL.equals(checkPolicies);
-            checkAllLibraries = ENABLE_ALL.equals(checkPolicies);
+            shouldCheckPolicies = Constants.ENABLE_NEW.equals(checkPolicies) || Constants.ENABLE_ALL.equals(checkPolicies);
+            checkAllLibraries = Constants.ENABLE_ALL.equals(checkPolicies);
         } else {
-            shouldCheckPolicies = ENABLE_NEW.equals(jobCheckPolicies) || ENABLE_ALL.equals(jobCheckPolicies);
-            checkAllLibraries = ENABLE_ALL.equals(jobCheckPolicies);
+            shouldCheckPolicies = Constants.ENABLE_NEW.equals(jobCheckPolicies) || Constants.ENABLE_ALL.equals(jobCheckPolicies);
+            checkAllLibraries = Constants.ENABLE_ALL.equals(jobCheckPolicies);
         }
     }
 
@@ -372,7 +372,7 @@ public class WhiteSourceStep {
         if (StringUtils.isBlank(jobForceUpdate) || Constants.GLOBAL.equals(jobForceUpdate)) {
             isForceUpdate = globalConfig.isGlobalForceUpdate();
         } else {
-            isForceUpdate = JOB_FORCE_UPDATE.equals(jobForceUpdate);
+            isForceUpdate = Constants.JOB_FORCE_UPDATE.equals(jobForceUpdate);
         }
     }
 
@@ -575,7 +575,7 @@ public class WhiteSourceStep {
         List<AgentProjectInfo> projects = new ArrayList<>();
         Map<AgentProjectInfo, LinkedList<ViaComponents>> fsaProjects = Collections.emptyMap();
         logger.println("Starting Pipeline-FSA job on " + workspace.getRemote());
-        Properties props = new Properties();
+        FSAConfigProperties props = new FSAConfigProperties();
         List<String> paths = new ArrayList<>();
         paths.add(workspace.getRemote());
 
@@ -595,7 +595,7 @@ public class WhiteSourceStep {
             FileSystemScanner fileSystemScanner = new FileSystemScanner(fsaConfiguration.getResolver(), fsaConfiguration.getAgent(), false);
             fsaProjects = fileSystemScanner.createProjects(paths, appPathsToDependencyDirs, false, libIncludes.split(SPACE), libExcludes.split(COMMA),
                     false, 0, null, null, false,
-                    false, null, false, false, false);
+                    false, null, false, false, false, ArrayUtils.EMPTY_STRING_ARRAY);
             int dependencyCount = 0;
             for (AgentProjectInfo agentProjectInfo : fsaProjects.keySet()) {
                 dependencyCount += agentProjectInfo.getDependencies().size();
