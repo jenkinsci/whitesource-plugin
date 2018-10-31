@@ -34,7 +34,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.jenkins.model.WhiteSourceDescriptor;
 import org.whitesource.jenkins.model.WhiteSourceStep;
-
+import org.whitesource.jenkins.Constants;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -42,7 +42,6 @@ import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.whitesource.jenkins.Constants.*;
 
 /**
  * @author ramakrishna
@@ -157,16 +156,16 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         }
 
         if (WssUtils.isFreeStyleMaven(run.getParent())) {
-            logger.println(UNSUPPORTED_FREESTYLE_MAVEN_JOB);
+            logger.println(Constants.UNSUPPORTED_FREESTYLE_MAVEN_JOB);
             return;
         }
 
-        logger.println(UPDATING_WHITESOURCE);
+        logger.println(Constants.UPDATING_WHITESOURCE);
         WhiteSourceStep whiteSourceStep = new WhiteSourceStep(whiteSourcePublisher, new WhiteSourceDescriptor((DescriptorImpl) getDescriptor()));
 
         // make sure we have an organization token
         if (StringUtils.isBlank(whiteSourceStep.getJobApiToken())) {
-            logger.println(INVALID_API_TOKEN);
+            logger.println(Constants.INVALID_API_TOKEN);
             return;
         }
 
@@ -176,7 +175,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         //            return;
         //        } else
         if (projectInfos.isEmpty()) {
-            logger.println(OSS_INFO_NOT_FOUND);
+            logger.println(Constants.OSS_INFO_NOT_FOUND);
         } else {
             whiteSourceStep.update(run, listener, projectInfos);
         }
@@ -251,26 +250,26 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-            apiToken = json.getString(API_TOKEN);
-            userKey = json.getString(USER_KEY);
-            serviceUrl = json.getString(SERVICE_URL);
-            checkPolicies = json.getString(CHECK_POLICIES);
-            failOnError = json.getBoolean(FAIL_ON_ERROR);
-            globalForceUpdate = json.getBoolean(GLOBAL_FORCE_UPDATE);
+            apiToken = json.getString(Constants.API_TOKEN);
+            userKey = json.getString(Constants.USER_KEY);
+            serviceUrl = json.getString(Constants.SERVICE_URL);
+            checkPolicies = json.getString(Constants.CHECK_POLICIES);
+            failOnError = json.getBoolean(Constants.FAIL_ON_ERROR);
+            globalForceUpdate = json.getBoolean(Constants.GLOBAL_FORCE_UPDATE);
 
-            JSONObject proxySettings = (JSONObject) json.get(PROXY_SETTINGS);
+            JSONObject proxySettings = (JSONObject) json.get(Constants.PROXY_SETTINGS);
             if (proxySettings == null) {
                 overrideProxySettings = false;
             } else {
                 overrideProxySettings = true;
-                server = proxySettings.getString(SERVER);
-                port = proxySettings.getString(PORT);
-                userName = proxySettings.getString(USER_NAME);
-                password = proxySettings.getString(PASSWORD);
+                server = proxySettings.getString(Constants.SERVER);
+                port = proxySettings.getString(Constants.PORT);
+                userName = proxySettings.getString(Constants.USER_NAME);
+                password = proxySettings.getString(Constants.PASSWORD);
             }
-            connectionTimeout = json.getString(CONNECTION_TIMEOUT);
-            connectionRetries = json.getString(CONNECTION_RETRIES);
-            connectionRetriesInterval = json.getString(CONNECTION_RETRIES_INTERVAL);
+            connectionTimeout = json.getString(Constants.CONNECTION_TIMEOUT);
+            connectionRetries = json.getString(Constants.CONNECTION_RETRIES);
+            connectionRetriesInterval = json.getString(Constants.CONNECTION_RETRIES_INTERVAL);
             save();
 
             return super.configure(req, json);
