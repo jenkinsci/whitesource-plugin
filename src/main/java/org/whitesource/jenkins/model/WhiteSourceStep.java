@@ -15,7 +15,9 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.whitesource.agent.ConfigPropertyKeys;
 import org.whitesource.agent.FileSystemScanner;
 import org.whitesource.agent.ViaComponents;
+import org.whitesource.agent.api.dispatch.CheckPolicyComplianceRequest;
 import org.whitesource.agent.api.dispatch.CheckPolicyComplianceResult;
+import org.whitesource.agent.api.dispatch.UpdateInventoryRequest;
 import org.whitesource.agent.api.dispatch.UpdateInventoryResult;
 import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.agent.api.model.Coordinates;
@@ -48,15 +50,14 @@ public class WhiteSourceStep {
     /* --- Static members --- */
 
     public static final String SPACE = " ";
-    private static final String PLUGIN_AGENTS_VERSION = "2.7.6";
-    private static final String PLUGIN_VERSION = "18.10.1";
+    private static final String PLUGIN_AGENTS_VERSION = "2.7.0";
+    private static final String PLUGIN_VERSION = "18.9.1";
     public static final String WITH_MAVEN = "withMaven";
     public static final String GENERIC_GLOB_PATTERN = "**/*.";
     public static final String COMMA = ",";
     public static final String SLASH = "/";
     public static final String AGENT_KEYWORD = "agent";
     /* --- Members --- */
-
     private WhiteSourceDescriptor globalConfig;
 
     private String jobApiToken;
@@ -117,12 +118,16 @@ public class WhiteSourceStep {
 
     public void update(Run<?, ?> run, TaskListener listener, Collection<AgentProjectInfo> projectInfos) {
         PrintStream logger = listener.getLogger();
+
         WhitesourceService service = createServiceClient(logger);
         try {
             if (shouldCheckPolicies) {
                 logger.println("Checking policies");
-                CheckPolicyComplianceResult result = service.checkPolicyCompliance(jobApiToken, productNameOrToken,
-                        productVersion, projectInfos, checkAllLibraries, jobUserKey);
+                CheckPolicyComplianceRequest policyRequest = new CheckPolicyComplianceRequest(jobApiToken, projectInfos ,checkAllLibraries);
+                policyRequest.setProduct(productNameOrToken);
+                policyRequest.setProductVersion(productVersion);
+                policyRequest.setUserKey(jobUserKey);
+                CheckPolicyComplianceResult result= service.checkPolicyCompliance(policyRequest);
                 policyCheckReport(result, run, listener);
                 boolean hasRejections = result.hasRejections();
                 String message;
@@ -290,7 +295,9 @@ public class WhiteSourceStep {
         UpdateInventoryResult updateResult = null;
         while (retries-- > -1) {
             try {
-                updateResult = service.update(orgToken, requesterEmail, productNameOrToken, productVersion, projectInfos, userKey);
+                UpdateInventoryRequest updateRequest = new UpdateInventoryRequest(orgToken,productNameOrToken,productVersion,projectInfos,userKey,null);
+                updateRequest.setRequesterEmail(requesterEmail);
+                updateResult = service.update(updateRequest);
                 if(updateResult != null) {
                     break;
                 }
