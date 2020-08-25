@@ -61,7 +61,7 @@ public class WhiteSourceStep {
     /* --- Members --- */
     private WhiteSourceDescriptor globalConfig;
 
-    private Secret jobApiToken;
+    private String jobApiToken;
     private String jobUserKey;
     private String product;
     private String productVersion;
@@ -82,7 +82,7 @@ public class WhiteSourceStep {
 
     /* --- Constructor --- */
 
-    public WhiteSourceStep(WhiteSourceDescriptor globalConfig, Secret jobApiToken, String jobForceUpdate, String jobCheckPolicies, String jobUserKey) {
+    public WhiteSourceStep(WhiteSourceDescriptor globalConfig, String jobApiToken, String jobForceUpdate, String jobCheckPolicies, String jobUserKey) {
         this.globalConfig = globalConfig;
         setApiToken(jobApiToken);
         setUserKey(jobUserKey);
@@ -124,7 +124,7 @@ public class WhiteSourceStep {
         try {
             if (shouldCheckPolicies) {
                 logger.println("Checking policies");
-                CheckPolicyComplianceRequest policyRequest = new CheckPolicyComplianceRequest(jobApiToken.getPlainText(), projectInfos ,checkAllLibraries);
+                CheckPolicyComplianceRequest policyRequest = new CheckPolicyComplianceRequest(jobApiToken, projectInfos ,checkAllLibraries);
                 policyRequest.setProduct(productNameOrToken);
                 policyRequest.setProductVersion(productVersion);
                 policyRequest.setUserKey(jobUserKey);
@@ -144,13 +144,13 @@ public class WhiteSourceStep {
                             " were force updated to organization inventory." :
                             "All dependencies conform with open source policies.";
                     logger.println(message);
-                    sendUpdate(jobApiToken.getPlainText(), requesterEmail, productNameOrToken, projectInfos, service, logger, productVersion, jobUserKey);
+                    sendUpdate(jobApiToken, requesterEmail, productNameOrToken, projectInfos, service, logger, productVersion, jobUserKey);
                     if (globalConfig.isFailOnError() && hasRejections) {
                         stopBuild(run, listener, "White Source Publisher failure");
                     }
                 }
             } else {
-                sendUpdate(jobApiToken.getPlainText(), requesterEmail, productNameOrToken, projectInfos, service, logger, productVersion, jobUserKey);
+                sendUpdate(jobApiToken, requesterEmail, productNameOrToken, projectInfos, service, logger, productVersion, jobUserKey);
             }
         } catch (WssServiceException | IOException | RuntimeException e) {
             stopBuildOnError(run, globalConfig.isFailOnError(), listener, e);
@@ -256,7 +256,7 @@ public class WhiteSourceStep {
                 host = globalConfig.getServer();
                 port = StringUtils.isBlank(globalConfig.getPort()) ? 0 : Integer.parseInt(globalConfig.getPort());
                 userName = globalConfig.getUserName();
-                password = globalConfig.getPassword();
+                password = Secret.toString(globalConfig.getPassword());
             } else { // proxy is configured in jenkins global settings
                 Hudson hudsonInstance = Hudson.getInstance();
                 if (hudsonInstance == null) {
@@ -357,8 +357,8 @@ public class WhiteSourceStep {
         run.addAction(new PolicyCheckReportAction(run));
     }
 
-    private void setApiToken(Secret jobApiToken) {
-        this.jobApiToken = StringUtils.isNotBlank(jobApiToken.getPlainText()) ? jobApiToken : globalConfig.getApiToken();
+    private void setApiToken(String jobApiToken) {
+        this.jobApiToken = StringUtils.isNotBlank(jobApiToken) ? jobApiToken : globalConfig.getApiToken();
     }
 
     private void setUserKey(String jobUerKey) {
@@ -433,11 +433,11 @@ public class WhiteSourceStep {
         this.globalConfig = globalConfig;
     }
 
-    public Secret getJobApiToken() {
+    public String getJobApiToken() {
         return jobApiToken;
     }
 
-    public void setJobApiToken(Secret jobApiToken) {
+    public void setJobApiToken(String jobApiToken) {
         this.jobApiToken = jobApiToken;
     }
 

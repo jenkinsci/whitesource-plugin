@@ -56,7 +56,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
     private String jobForceUpdate;
 
-    private Secret jobApiToken;
+    private String jobApiToken;
 
     private String jobUserKey;
 
@@ -109,7 +109,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
     @DataBoundConstructor
     public WhiteSourcePublisher(String jobCheckPolicies,
                                 String jobForceUpdate,
-                                Secret jobApiToken,
+                                String jobApiToken,
                                 String jobUserKey,
                                 String product,
                                 String productVersion,
@@ -165,7 +165,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         WhiteSourceStep whiteSourceStep = new WhiteSourceStep(whiteSourcePublisher, new WhiteSourceDescriptor((DescriptorImpl) getDescriptor()));
 
         // make sure we have an organization token
-        if (StringUtils.isBlank(whiteSourceStep.getJobApiToken().getPlainText())) {
+        if (StringUtils.isBlank(whiteSourceStep.getJobApiToken())) {
             logger.println(Constants.INVALID_API_TOKEN);
             return;
         }
@@ -197,7 +197,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
         private String serviceUrl;
 
-        private Secret apiToken;
+        private String apiToken;
 
         private String userKey;
 
@@ -215,7 +215,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
         private String userName;
 
-        private String password;
+        private Secret password;
 
         private String connectionTimeout;
 
@@ -251,7 +251,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-            apiToken = apiToken.fromString(json.getString(Constants.API_TOKEN));
+            apiToken = json.getString(Constants.API_TOKEN);
             userKey = json.getString(Constants.USER_KEY);
             serviceUrl = json.getString(Constants.SERVICE_URL);
             checkPolicies = json.getString(Constants.CHECK_POLICIES);
@@ -266,7 +266,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
                 server = proxySettings.getString(Constants.SERVER);
                 port = proxySettings.getString(Constants.PORT);
                 userName = proxySettings.getString(Constants.USER_NAME);
-                password = proxySettings.getString(Constants.PASSWORD);
+                password = password.fromString(proxySettings.getString(Constants.PASSWORD));
             }
             connectionTimeout = json.getString(Constants.CONNECTION_TIMEOUT);
             connectionRetries = json.getString(Constants.CONNECTION_RETRIES);
@@ -307,11 +307,11 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
             this.serviceUrl = serviceUrl;
         }
 
-        public Secret getApiToken() {
+        public String getApiToken() {
             return apiToken;
         }
 
-        public void setApiToken(Secret apiToken) {
+        public void setApiToken(String apiToken) {
             this.apiToken = apiToken;
         }
 
@@ -371,11 +371,11 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
             this.userName = userName;
         }
 
-        public String getPassword() {
+        public Secret getPassword() {
             return password;
         }
 
-        public void setPassword(String password) {
+        public void setPassword(Secret password) {
             this.password = password;
         }
 
@@ -417,7 +417,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
     private WhiteSourcePublisher checkEnvironmentVariables(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
         WhiteSourcePublisher whiteSourcePublisher = new WhiteSourcePublisher(this);
-        whiteSourcePublisher.jobApiToken = this.jobApiToken.fromString(extractEnvironmentVariables(run, listener, this.jobApiToken.getPlainText()));
+        whiteSourcePublisher.jobApiToken = extractEnvironmentVariables(run, listener, this.jobApiToken);
         whiteSourcePublisher.jobUserKey = extractEnvironmentVariables(run, listener, this.jobUserKey);
         whiteSourcePublisher.product = extractEnvironmentVariables(run, listener, this.product);
         whiteSourcePublisher.productVersion = extractEnvironmentVariables(run, listener, this.productVersion);
@@ -470,7 +470,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         return jobForceUpdate;
     }
 
-    public Secret getJobApiToken() {
+    public String getJobApiToken() {
         return jobApiToken;
     }
 

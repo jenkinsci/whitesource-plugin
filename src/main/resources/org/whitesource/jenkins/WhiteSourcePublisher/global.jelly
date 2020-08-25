@@ -8,7 +8,7 @@
       <f:section title="White Source Publisher">
         <f:entry title="API token" field="apiToken"
                 help="/plugin/whitesource/help/help-apiToken.html">
-        <f:textbox/>
+        <f:secretTextarea/>
         </f:entry>
          <f:entry title="User key" field="userKey"
                                         help="/plugin/whitesource/help/help-userKey.html">
