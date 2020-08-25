@@ -21,6 +21,7 @@ import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.*;
@@ -57,7 +58,7 @@ public class WhiteSourcePipelineStep extends Step {
 
     private String jobForceUpdate;
 
-    private String jobApiToken;
+    private Secret jobApiToken;
 
     private String jobUserKey;
 
@@ -74,7 +75,7 @@ public class WhiteSourcePipelineStep extends Step {
     @DataBoundConstructor
     public WhiteSourcePipelineStep(String jobCheckPolicies,
                                    String jobForceUpdate,
-                                   String jobApiToken,
+                                   Secret jobApiToken,
                                    String jobUserKey,
                                    String product,
                                    String productVersion,
@@ -140,12 +141,12 @@ public class WhiteSourcePipelineStep extends Step {
         this.jobForceUpdate = jobForceUpdate;
     }
 
-    public String getJobApiToken() {
+    public Secret getJobApiToken() {
         return jobApiToken;
     }
 
     @DataBoundSetter
-    public void setJobApiToken(String jobApiToken) {
+    public void setJobApiToken(Secret jobApiToken) {
         this.jobApiToken = jobApiToken;
     }
 
@@ -198,7 +199,7 @@ public class WhiteSourcePipelineStep extends Step {
         /* --- Members --- */
 
         private String serviceUrl;
-        private String apiToken;
+        private Secret apiToken;
         private String userKey;
         private String pipelineCheckPolicies;
         private boolean globalForceUpdate;
@@ -242,7 +243,7 @@ public class WhiteSourcePipelineStep extends Step {
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
             serviceUrl = json.getString(Constants.SERVICE_URL);
-            apiToken = json.getString(Constants.API_TOKEN);
+            apiToken = apiToken.fromString(json.getString(Constants.API_TOKEN));
             userKey = json.getString(Constants.USER_KEY);
             pipelineCheckPolicies = json.getString(Constants.PIPELINE_CHECK_POLICIES);
             failOnError = json.getBoolean(Constants.FAIL_ON_ERROR);
@@ -298,11 +299,11 @@ public class WhiteSourcePipelineStep extends Step {
             this.serviceUrl = serviceUrl;
         }
 
-        public String getApiToken() {
+        public Secret getApiToken() {
             return apiToken;
         }
 
-        public void setApiToken(String apiToken) {
+        public void setApiToken(Secret apiToken) {
             this.apiToken = apiToken;
         }
 
@@ -432,7 +433,7 @@ public class WhiteSourcePipelineStep extends Step {
             WhiteSourceStep whiteSourceStep = new WhiteSourceStep(step, new WhiteSourceDescriptor((DescriptorImpl) step.getDescriptor()));
 
             // make sure we have an organization token
-            if (StringUtils.isBlank(whiteSourceStep.getJobApiToken())) {
+            if (StringUtils.isBlank(whiteSourceStep.getJobApiToken().getPlainText())) {
                 logger.println(Constants.INVALID_API_TOKEN);
                 return null;
             }

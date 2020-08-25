@@ -50,7 +50,7 @@
                             <f:radio name="jobForceUpdate" title="Update" value="jobUpdate" checked="${selectedForceUpdate == 'jobUpdate'}"/>
                         </f:entry>
                         <f:entry title="Override API token" field="jobApiToken" help="/plugin/whitesource/help/help-jobApiToken.html">
-                            <f:textbox />
+                            <f:passward />
                         </f:entry>
                         <f:entry title="Override User Key" field="jobUserKey" help="/plugin/whitesource/help/help-jobUserKey.html">
                             <f:textbox />
@@ -88,7 +88,7 @@
                                                  <f:radio name="jobForceUpdate" title="Update" value="jobUpdate" checked="${selectedForceUpdate == 'jobUpdate'}"/>
                                         </f:entry>
                     <f:entry title="Override API token" field="jobApiToken" help="/plugin/whitesource/help/help-jobApiToken.html">
-                        <f:textbox />
+                        <f:passward />
                     </f:entry>
                     <f:entry title="Override User Key" field="jobUserKey" help="/plugin/whitesource/help/help-jobUserKey.html">
                         <f:textbox />

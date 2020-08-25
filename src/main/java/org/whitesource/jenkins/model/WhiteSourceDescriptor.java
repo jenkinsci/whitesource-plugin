@@ -1,5 +1,6 @@
 package org.whitesource.jenkins.model;
 
+import hudson.util.Secret;
 import org.whitesource.jenkins.WhiteSourcePublisher;
 import org.whitesource.jenkins.pipeline.WhiteSourcePipelineStep;
 
@@ -13,7 +14,7 @@ public class WhiteSourceDescriptor {
     /* --- Members --- */
 
     private String serviceUrl;
-    private String apiToken;
+    private Secret apiToken;
     private String userKey;
     private String checkPolicies;
     private boolean globalForceUpdate;
@@ -73,11 +74,11 @@ public class WhiteSourceDescriptor {
         this.serviceUrl = serviceUrl;
     }
 
-    public String getApiToken() {
+    public Secret getApiToken() {
         return apiToken;
     }
 
-    public void setApiToken(String apiToken) { this.apiToken = apiToken; }
+    public void setApiToken(Secret apiToken) { this.apiToken = apiToken; }
 
     public String getUserKey() { return userKey; }
 

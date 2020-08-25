@@ -25,6 +25,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -55,7 +56,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
     private String jobForceUpdate;
 
-    private String jobApiToken;
+    private Secret jobApiToken;
 
     private String jobUserKey;
 
@@ -108,7 +109,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
     @DataBoundConstructor
     public WhiteSourcePublisher(String jobCheckPolicies,
                                 String jobForceUpdate,
-                                String jobApiToken,
+                                Secret jobApiToken,
                                 String jobUserKey,
                                 String product,
                                 String productVersion,
@@ -164,7 +165,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         WhiteSourceStep whiteSourceStep = new WhiteSourceStep(whiteSourcePublisher, new WhiteSourceDescriptor((DescriptorImpl) getDescriptor()));
 
         // make sure we have an organization token
-        if (StringUtils.isBlank(whiteSourceStep.getJobApiToken())) {
+        if (StringUtils.isBlank(whiteSourceStep.getJobApiToken().getPlainText())) {
             logger.println(Constants.INVALID_API_TOKEN);
             return;
         }
@@ -196,7 +197,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
         private String serviceUrl;
 
-        private String apiToken;
+        private Secret apiToken;
 
         private String userKey;
 
@@ -250,7 +251,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-            apiToken = json.getString(Constants.API_TOKEN);
+            apiToken = apiToken.fromString(json.getString(Constants.API_TOKEN));
             userKey = json.getString(Constants.USER_KEY);
             serviceUrl = json.getString(Constants.SERVICE_URL);
             checkPolicies = json.getString(Constants.CHECK_POLICIES);
@@ -306,11 +307,11 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
             this.serviceUrl = serviceUrl;
         }
 
-        public String getApiToken() {
+        public Secret getApiToken() {
             return apiToken;
         }
 
-        public void setApiToken(String apiToken) {
+        public void setApiToken(Secret apiToken) {
             this.apiToken = apiToken;
         }
 
@@ -416,7 +417,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
 
     private WhiteSourcePublisher checkEnvironmentVariables(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
         WhiteSourcePublisher whiteSourcePublisher = new WhiteSourcePublisher(this);
-        whiteSourcePublisher.jobApiToken = extractEnvironmentVariables(run, listener, this.jobApiToken);
+        whiteSourcePublisher.jobApiToken = this.jobApiToken.fromString(extractEnvironmentVariables(run, listener, this.jobApiToken.getPlainText()));
         whiteSourcePublisher.jobUserKey = extractEnvironmentVariables(run, listener, this.jobUserKey);
         whiteSourcePublisher.product = extractEnvironmentVariables(run, listener, this.product);
         whiteSourcePublisher.productVersion = extractEnvironmentVariables(run, listener, this.productVersion);
@@ -469,7 +470,7 @@ public class WhiteSourcePublisher extends Publisher implements SimpleBuildStep {
         return jobForceUpdate;
     }
 
-    public String getJobApiToken() {
+    public Secret getJobApiToken() {
         return jobApiToken;
     }
 
