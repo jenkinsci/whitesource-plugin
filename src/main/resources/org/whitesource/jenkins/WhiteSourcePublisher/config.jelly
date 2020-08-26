@@ -50,13 +50,13 @@
                             <f:radio name="jobForceUpdate" title="Update" value="jobUpdate" checked="${selectedForceUpdate == 'jobUpdate'}"/>
                         </f:entry>
                         <f:entry title="Override API token" field="jobApiToken" help="/plugin/whitesource/help/help-jobApiToken.html">
-                            <f:secretTextarea />
+                            <f:password />
                         </f:entry>
                         <f:entry title="Override User Key" field="jobUserKey" help="/plugin/whitesource/help/help-jobUserKey.html">
-                            <f:textbox />
+                            <f:password />
                         </f:entry>
                         <f:entry title="Project token" field="projectToken" help="/plugin/whitesource/help/help-projectToken.html">
-                            <f:textbox />
+                            <f:password />
                         </f:entry>
                         <f:entry title="Requester email" field="requesterEmail" help="/plugin/whitesource/help/help-requesterEmail.html">
                             <f:textbox />
@@ -88,20 +88,20 @@
                                                  <f:radio name="jobForceUpdate" title="Update" value="jobUpdate" checked="${selectedForceUpdate == 'jobUpdate'}"/>
                                         </f:entry>
                     <f:entry title="Override API token" field="jobApiToken" help="/plugin/whitesource/help/help-jobApiToken.html">
-                        <f:secretTextarea />
+                        <f:password />
                     </f:entry>
                     <f:entry title="Override User Key" field="jobUserKey" help="/plugin/whitesource/help/help-jobUserKey.html">
-                        <f:textbox />
+                        <f:password />
                     </f:entry>
                     <f:advanced>
                         <f:entry title="Project token" field="mavenProjectToken" help="/plugin/whitesource/help/help-mavenProjectToken.html">
-                            <f:textbox />
+                            <f:password />
                         </f:entry>
                         <f:entry title="Requester email" field="requesterEmail" help="/plugin/whitesource/help/help-requesterEmail.html">
                             <f:textbox />
                         </f:entry>
                         <f:entry title="Module tokens" field="moduleTokens" help="/plugin/whitesource/help/help-moduleTokens.html">
-                            <f:expandableTextbox />
+                            <f:password />
                         </f:entry>
                         <f:entry title="Modules to include" field="modulesToInclude" help="/plugin/whitesource/help/help-modulesToInclude.html">
                             <f:expandableTextbox />

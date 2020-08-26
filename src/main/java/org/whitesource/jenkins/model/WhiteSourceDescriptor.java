@@ -14,8 +14,8 @@ public class WhiteSourceDescriptor {
     /* --- Members --- */
 
     private String serviceUrl;
-    private String apiToken;
-    private String userKey;
+    private Secret apiToken;
+    private Secret userKey;
     private String checkPolicies;
     private boolean globalForceUpdate;
     private boolean failOnError;
@@ -74,15 +74,15 @@ public class WhiteSourceDescriptor {
         this.serviceUrl = serviceUrl;
     }
 
-    public String getApiToken() {
+    public Secret getApiToken() {
         return apiToken;
     }
 
-    public void setApiToken(String apiToken) { this.apiToken = apiToken; }
+    public void setApiToken(Secret apiToken) { this.apiToken = apiToken; }
 
-    public String getUserKey() { return userKey; }
+    public Secret getUserKey() { return userKey; }
 
-    public void setUserKey(String userKey) { this.userKey = userKey; }
+    public void setUserKey(Secret userKey) { this.userKey = userKey; }
 
     public String getCheckPolicies() {
         return checkPolicies;
