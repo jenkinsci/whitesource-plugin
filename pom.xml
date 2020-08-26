@@ -25,7 +25,7 @@
     </parent>
 
     <artifactId>whitesource</artifactId>
-    <version>18.10.1-SNAPSHOT</version>
+    <version>20.8.2-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <name>White Source Jenkins plugin</name>
@@ -343,6 +343,7 @@
                     <artifactId>whitesource-maven-plugin</artifactId>
                     <version>1.1.6</version>
                     <configuration>
+                        <!--suppress UnresolvedMavenProperty -->
                         <orgToken>${whitesource.orgToken}</orgToken>
                         <checkPolicies>true</checkPolicies>
                     </configuration>
