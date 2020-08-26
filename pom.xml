@@ -343,7 +343,6 @@
                     <artifactId>whitesource-maven-plugin</artifactId>
                     <version>1.1.6</version>
                     <configuration>
-                        <!--suppress UnresolvedMavenProperty -->
                         <orgToken>${whitesource.orgToken}</orgToken>
                         <checkPolicies>true</checkPolicies>
                     </configuration>
