@@ -5,6 +5,7 @@ import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.maven.reporters.MavenArtifactRecord;
 import hudson.model.TaskListener;
+import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.whitesource.agent.api.model.AgentProjectInfo;
 import org.whitesource.agent.api.model.Coordinates;
@@ -28,7 +29,7 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
 
     private final MavenModuleSetBuild mavenModuleSetBuild;
 
-    private final String mavenProjectToken;
+    private final Secret mavenProjectToken;
 
     private final Map<String, String> moduleTokens;
 
@@ -40,15 +41,15 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
                                  String excludes,
                                  MavenModuleSetBuild mavenModuleSetBuild,
                                  TaskListener listener,
-                                 String mavenProjectToken,
-                                 String moduleTokens,
+                                 Secret mavenProjectToken,
+                                 Secret moduleTokens,
                                  boolean ignorePomModules) {
         super(includes, excludes, mavenModuleSetBuild, listener);
 
         this.mavenModuleSetBuild = mavenModuleSetBuild;
         this.mavenProjectToken = mavenProjectToken;
         this.ignorePomModules = ignorePomModules;
-        this.moduleTokens = WssUtils.splitParametersMap(moduleTokens);
+        this.moduleTokens = WssUtils.splitParametersMap(Secret.toString(moduleTokens));
     }
 
     /* --- Concrete implementation methods --- */
@@ -75,7 +76,7 @@ public class MavenOssInfoExtractor extends BaseOssInfoExtractor {
                         action.pomArtifact.version));
 
                 if (moduleLastBuilds.size() == 1) {
-                    projectInfo.setProjectToken(mavenProjectToken);
+                    projectInfo.setProjectToken(Secret.toString(mavenProjectToken));
                 } else {
                     projectInfo.setProjectToken(moduleTokens.get(action.mainArtifact.artifactId));
                 }

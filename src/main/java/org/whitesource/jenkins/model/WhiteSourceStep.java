@@ -5,6 +5,7 @@ import hudson.ProxyConfiguration;
 import hudson.Util;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
+import hudson.util.Secret;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -60,16 +61,16 @@ public class WhiteSourceStep {
     /* --- Members --- */
     private WhiteSourceDescriptor globalConfig;
 
-    private String jobApiToken;
-    private String jobUserKey;
+    private Secret jobApiToken;
+    private Secret jobUserKey;
     private String product;
     private String productVersion;
-    private String projectToken;
+    private Secret projectToken;
     private String libIncludes;
     private String libExcludes;
-    private String mavenProjectToken;
+    private Secret mavenProjectToken;
     private String requesterEmail;
-    private String moduleTokens;
+    private Secret moduleTokens;
     private String modulesToInclude;
     private String modulesToExclude;
     private boolean ignorePomModules;
@@ -81,7 +82,8 @@ public class WhiteSourceStep {
 
     /* --- Constructor --- */
 
-    public WhiteSourceStep(WhiteSourceDescriptor globalConfig, String jobApiToken, String jobForceUpdate, String jobCheckPolicies, String jobUserKey) {
+    public WhiteSourceStep(WhiteSourceDescriptor globalConfig, Secret jobApiToken,
+                           String jobForceUpdate, String jobCheckPolicies, Secret jobUserKey) {
         this.globalConfig = globalConfig;
         setApiToken(jobApiToken);
         setUserKey(jobUserKey);
@@ -90,7 +92,8 @@ public class WhiteSourceStep {
     }
 
     public WhiteSourceStep(WhiteSourcePublisher publisher, WhiteSourceDescriptor globalConfig) {
-        this(globalConfig, publisher.getJobApiToken(), publisher.getJobForceUpdate(), publisher.getJobCheckPolicies(), publisher.getJobUserKey());
+        this(globalConfig, publisher.getJobApiToken(), publisher.getJobForceUpdate(),
+                publisher.getJobCheckPolicies(), publisher.getJobUserKey());
         this.product = publisher.getProduct();
         this.productVersion = publisher.getProductVersion();
         this.projectToken = publisher.getProjectToken();
@@ -123,10 +126,10 @@ public class WhiteSourceStep {
         try {
             if (shouldCheckPolicies) {
                 logger.println("Checking policies");
-                CheckPolicyComplianceRequest policyRequest = new CheckPolicyComplianceRequest(jobApiToken, projectInfos ,checkAllLibraries);
+                CheckPolicyComplianceRequest policyRequest = new CheckPolicyComplianceRequest(Secret.toString(jobApiToken), projectInfos ,checkAllLibraries);
                 policyRequest.setProduct(productNameOrToken);
                 policyRequest.setProductVersion(productVersion);
-                policyRequest.setUserKey(jobUserKey);
+                policyRequest.setUserKey(Secret.toString(jobUserKey));
                 CheckPolicyComplianceResult result= service.checkPolicyCompliance(policyRequest);
                 policyCheckReport(result, run, listener);
                 boolean hasRejections = result.hasRejections();
@@ -255,7 +258,7 @@ public class WhiteSourceStep {
                 host = globalConfig.getServer();
                 port = StringUtils.isBlank(globalConfig.getPort()) ? 0 : Integer.parseInt(globalConfig.getPort());
                 userName = globalConfig.getUserName();
-                password = globalConfig.getPassword();
+                password = Secret.toString(globalConfig.getPassword());
             } else { // proxy is configured in jenkins global settings
                 Hudson hudsonInstance = Hudson.getInstance();
                 if (hudsonInstance == null) {
@@ -280,12 +283,12 @@ public class WhiteSourceStep {
         return service;
     }
 
-    private void sendUpdate(String orgToken,
+    private void sendUpdate(Secret orgToken,
                             String requesterEmail,
                             String productNameOrToken,
                             Collection<AgentProjectInfo> projectInfos,
                             WhitesourceService service,
-                            PrintStream logger, String productVersion, String userKey) throws WssServiceException {
+                            PrintStream logger, String productVersion, Secret userKey) throws WssServiceException {
         logger.println("Sending to White Source");
 
         int retries =  Integer.parseInt(globalConfig.getConnectionRetries());
@@ -295,7 +298,8 @@ public class WhiteSourceStep {
         UpdateInventoryResult updateResult = null;
         while (retries-- > -1) {
             try {
-                UpdateInventoryRequest updateRequest = new UpdateInventoryRequest(orgToken,productNameOrToken,productVersion,projectInfos,userKey,null);
+                UpdateInventoryRequest updateRequest = new UpdateInventoryRequest(Secret.toString(orgToken),
+                        productNameOrToken, productVersion, projectInfos, Secret.toString(userKey), null);
                 updateRequest.setRequesterEmail(requesterEmail);
                 updateResult = service.update(updateRequest);
                 if(updateResult != null) {
@@ -356,12 +360,12 @@ public class WhiteSourceStep {
         run.addAction(new PolicyCheckReportAction(run));
     }
 
-    private void setApiToken(String jobApiToken) {
-        this.jobApiToken = StringUtils.isNotBlank(jobApiToken) ? jobApiToken : globalConfig.getApiToken();
+    private void setApiToken(Secret jobApiToken) {
+        this.jobApiToken = StringUtils.isNotBlank(Secret.toString(jobApiToken)) ? jobApiToken : globalConfig.getApiToken();
     }
 
-    private void setUserKey(String jobUerKey) {
-        this.jobUserKey = StringUtils.isNotBlank(jobUerKey) ? jobUerKey : globalConfig.getUserKey();
+    private void setUserKey(Secret jobUserKey) {
+        this.jobUserKey = StringUtils.isNotBlank(Secret.toString(jobUserKey)) ? jobUserKey : globalConfig.getUserKey();
     }
 
     private void isCheckPolicies(String jobCheckPolicies) {
@@ -432,19 +436,19 @@ public class WhiteSourceStep {
         this.globalConfig = globalConfig;
     }
 
-    public String getJobApiToken() {
+    public Secret getJobApiToken() {
         return jobApiToken;
     }
 
-    public void setJobApiToken(String jobApiToken) {
+    public void setJobApiToken(Secret jobApiToken) {
         this.jobApiToken = jobApiToken;
     }
 
-    public String getJobUserKey() {
+    public Secret getJobUserKey() {
         return jobUserKey;
     }
 
-    public void setJobUserKey(String jobUserKey) {
+    public void setJobUserKey(Secret jobUserKey) {
         this.jobUserKey = jobUserKey;
     }
 
@@ -464,11 +468,11 @@ public class WhiteSourceStep {
         this.productVersion = productVersion;
     }
 
-    public String getProjectToken() {
+    public Secret getProjectToken() {
         return projectToken;
     }
 
-    public void setProjectToken(String projectToken) {
+    public void setProjectToken(Secret projectToken) {
         this.projectToken = projectToken;
     }
 
@@ -488,11 +492,11 @@ public class WhiteSourceStep {
         this.libExcludes = libExcludes;
     }
 
-    public String getMavenProjectToken() {
+    public Secret getMavenProjectToken() {
         return mavenProjectToken;
     }
 
-    public void setMavenProjectToken(String mavenProjectToken) {
+    public void setMavenProjectToken(Secret mavenProjectToken) {
         this.mavenProjectToken = mavenProjectToken;
     }
 
@@ -504,11 +508,11 @@ public class WhiteSourceStep {
         this.requesterEmail = requesterEmail;
     }
 
-    public String getModuleTokens() {
+    public Secret getModuleTokens() {
         return moduleTokens;
     }
 
-    public void setModuleTokens(String moduleTokens) {
+    public void setModuleTokens(Secret moduleTokens) {
         this.moduleTokens = moduleTokens;
     }
 
@@ -614,8 +618,8 @@ public class WhiteSourceStep {
             }
         }
         for (AgentProjectInfo agentProjectInfo : fsaProjects.keySet()) {
-            if (projectToken != null && (StringUtils.isNotBlank(projectToken))) {
-                agentProjectInfo.setProjectToken(projectToken); // WSE-494 fix
+            if (projectToken != null && (StringUtils.isNotBlank(Secret.toString(projectToken)))) {
+                agentProjectInfo.setProjectToken(Secret.toString(projectToken)); // WSE-494 fix
             } else {
                 if (agentProjectInfo.getCoordinates() != null) {
                     agentProjectInfo.setCoordinates(new Coordinates(null, agentProjectInfo.getCoordinates().getArtifactId(), productVersion));
