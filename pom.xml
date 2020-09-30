@@ -24,7 +24,7 @@
     </parent>
 
     <artifactId>whitesource</artifactId>
-    <version>20.8.2-SNAPSHOT</version>
+    <version>20.9.2</version>
     <packaging>hpi</packaging>
 
     <name>White Source Jenkins plugin</name>
@@ -59,9 +59,9 @@
             </roles>
         </developer>
         <developer>
-            <id>ArtiomPetrov</id>
-            <name>Artiom Petrov</name>
-            <email>artiom.petrov@whitesourcesoftware.com</email>
+            <id>samisalamiws</id>
+            <name>Sami Salami</name>
+            <email>sami.salami@whitesourcesoftware.com</email>
             <organization>White Source</organization>
             <url>http://www.whitesourcesoftware.com/</url>
             <roles>
