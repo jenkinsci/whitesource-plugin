@@ -24,7 +24,7 @@
     </parent>
 
     <artifactId>whitesource</artifactId>
-    <version>20.8.2-SNAPSHOT</version>
+    <version>20.9.2</version>
     <packaging>hpi</packaging>
 
     <name>White Source Jenkins plugin</name>
@@ -59,9 +59,9 @@
             </roles>
         </developer>
         <developer>
-            <id>ArtiomPetrov</id>
-            <name>Artiom Petrov</name>
-            <email>artiom.petrov@whitesourcesoftware.com</email>
+            <id>samisalamiws</id>
+            <name>Sami Salami</name>
+            <email>sami.salami@whitesourcesoftware.com</email>
             <organization>White Source</organization>
             <url>http://www.whitesourcesoftware.com/</url>
             <roles>
@@ -108,7 +108,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-cps</artifactId>
-            <version>2.0</version>
+            <version>2.64</version>
             <exclusions>
                 <!--<exclusion>-->
                     <!--<groupId>org.kohsuke</groupId>-->
@@ -129,7 +129,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.9.10</version>
+            <version>2.9.10.5</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -159,7 +159,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec-http</artifactId>
-            <version>4.1.42.Final</version>
+            <version>4.1.52.Final</version>
         </dependency>
         <!--<dependency>-->
             <!--<groupId>com.fasterxml.jackson.core</groupId>-->
