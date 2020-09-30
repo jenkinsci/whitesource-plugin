@@ -8,11 +8,11 @@
       <f:section title="White Source Pipeline">
         <f:entry title="API token" field="apiToken"
                 help="/plugin/whitesource/help/help-apiToken.html">
-            <f:textbox/>
+            <f:password/>
         </f:entry>
         <f:entry title="User key" field="userKey"
                                 help="/plugin/whitesource/help/help-userKey.html">
-                <f:textbox/>
+                <f:password/>
         </f:entry>
         <f:entry title="Service url" field="serviceUrl"
                 help="/plugin/whitesource/help/help-serviceUrl.html">

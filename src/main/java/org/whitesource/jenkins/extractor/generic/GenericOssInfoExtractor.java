@@ -3,6 +3,7 @@ package org.whitesource.jenkins.extractor.generic;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.whitesource.agent.api.model.AgentProjectInfo;
@@ -30,7 +31,7 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
 
     /* --- Members --- */
 
-    private final String projectToken;
+    private final Secret projectToken;
     private final FilePath workspace;
 
     /* --- Constructors --- */
@@ -39,7 +40,7 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
                                    String excludes,
                                    Run<?, ?> run,
                                    TaskListener listener,
-                                   String projectToken, FilePath workspace) {
+                                   Secret projectToken, FilePath workspace) {
         super(includes, excludes, run, listener);
         this.projectToken = projectToken;
         this.workspace = workspace;
@@ -59,10 +60,10 @@ public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
 
         LibFolderScanner libScanner = new LibFolderScanner(includes, excludes, listener);
         AgentProjectInfo projectInfo = new AgentProjectInfo();
-        if (StringUtils.isBlank(projectToken)) {
+        if (StringUtils.isBlank(Secret.toString(projectToken))) {
             projectInfo.setCoordinates(new Coordinates(null, run.getParent().getName(), "build #" + run.getNumber()));
         } else {
-            projectInfo.setProjectToken(projectToken);
+            projectInfo.setProjectToken(Secret.toString(projectToken));
         }
 
         if (workspace == null) {

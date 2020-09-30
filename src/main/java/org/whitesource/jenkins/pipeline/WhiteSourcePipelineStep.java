@@ -21,6 +21,7 @@ import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.*;
@@ -57,11 +58,11 @@ public class WhiteSourcePipelineStep extends Step {
 
     private String jobForceUpdate;
 
-    private String jobApiToken;
+    private Secret jobApiToken;
 
-    private String jobUserKey;
+    private Secret jobUserKey;
 
-    private String projectToken;
+    private Secret projectToken;
 
     private String requesterEmail;
 
@@ -74,11 +75,11 @@ public class WhiteSourcePipelineStep extends Step {
     @DataBoundConstructor
     public WhiteSourcePipelineStep(String jobCheckPolicies,
                                    String jobForceUpdate,
-                                   String jobApiToken,
-                                   String jobUserKey,
+                                   Secret jobApiToken,
+                                   Secret jobUserKey,
                                    String product,
                                    String productVersion,
-                                   String projectToken,
+                                   Secret projectToken,
                                    String libIncludes,
                                    String libExcludes,
                                    String requesterEmail) {
@@ -140,26 +141,26 @@ public class WhiteSourcePipelineStep extends Step {
         this.jobForceUpdate = jobForceUpdate;
     }
 
-    public String getJobApiToken() {
+    public Secret getJobApiToken() {
         return jobApiToken;
     }
 
     @DataBoundSetter
-    public void setJobApiToken(String jobApiToken) {
+    public void setJobApiToken(Secret jobApiToken) {
         this.jobApiToken = jobApiToken;
     }
 
-    public String getJobUserKey() { return jobUserKey; }
+    public Secret getJobUserKey() { return jobUserKey; }
 
     @DataBoundSetter
-    public void setJobUserKey(String jobUserKey) { this.jobUserKey = jobUserKey; }
+    public void setJobUserKey(Secret jobUserKey) { this.jobUserKey = jobUserKey; }
 
-    public String getProjectToken() {
+    public Secret getProjectToken() {
         return projectToken;
     }
 
     @DataBoundSetter
-    public void setProjectToken(String projectToken) {
+    public void setProjectToken(Secret projectToken) {
         this.projectToken = projectToken;
     }
 
@@ -198,8 +199,8 @@ public class WhiteSourcePipelineStep extends Step {
         /* --- Members --- */
 
         private String serviceUrl;
-        private String apiToken;
-        private String userKey;
+        private Secret apiToken;
+        private Secret userKey;
         private String pipelineCheckPolicies;
         private boolean globalForceUpdate;
         private boolean failOnError;
@@ -207,7 +208,7 @@ public class WhiteSourcePipelineStep extends Step {
         private String server;
         private String port;
         private String userName;
-        private String password;
+        private Secret password;
         private String connectionTimeout;
         private String connectionRetries;
         private String connectionRetriesInterval;
@@ -242,8 +243,8 @@ public class WhiteSourcePipelineStep extends Step {
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
             serviceUrl = json.getString(Constants.SERVICE_URL);
-            apiToken = json.getString(Constants.API_TOKEN);
-            userKey = json.getString(Constants.USER_KEY);
+            apiToken = Secret.fromString(json.getString(Constants.API_TOKEN));
+            userKey = Secret.fromString(json.getString(Constants.USER_KEY));
             pipelineCheckPolicies = json.getString(Constants.PIPELINE_CHECK_POLICIES);
             failOnError = json.getBoolean(Constants.FAIL_ON_ERROR);
             globalForceUpdate = json.getBoolean(Constants.GLOBAL_FORCE_UPDATE);
@@ -254,7 +255,7 @@ public class WhiteSourcePipelineStep extends Step {
             } else {
                 overrideProxySettings = true;
                 userName = proxySettings.getString(Constants.USER_NAME);
-                password = proxySettings.getString(Constants.PASSWORD);
+                password = Secret.fromString(proxySettings.getString(Constants.PASSWORD));
                 server = proxySettings.getString(Constants.SERVER);
                 port = proxySettings.getString(Constants.PORT);
             }
@@ -298,17 +299,17 @@ public class WhiteSourcePipelineStep extends Step {
             this.serviceUrl = serviceUrl;
         }
 
-        public String getApiToken() {
+        public Secret getApiToken() {
             return apiToken;
         }
 
-        public void setApiToken(String apiToken) {
+        public void setApiToken(Secret apiToken) {
             this.apiToken = apiToken;
         }
 
-        public String getUserKey() { return userKey; }
+        public Secret getUserKey() { return userKey; }
 
-        public void setUserKey(String userKey) { this.userKey = userKey; }
+        public void setUserKey(Secret userKey) { this.userKey = userKey; }
 
         public String getCheckPolicies() {
             return pipelineCheckPolicies;
@@ -358,11 +359,11 @@ public class WhiteSourcePipelineStep extends Step {
             this.userName = userName;
         }
 
-        public String getPassword() {
+        public Secret getPassword() {
             return password;
         }
 
-        public void setPassword(String password) {
+        public void setPassword(Secret password) {
             this.password = password;
         }
 
@@ -432,7 +433,7 @@ public class WhiteSourcePipelineStep extends Step {
             WhiteSourceStep whiteSourceStep = new WhiteSourceStep(step, new WhiteSourceDescriptor((DescriptorImpl) step.getDescriptor()));
 
             // make sure we have an organization token
-            if (StringUtils.isBlank(whiteSourceStep.getJobApiToken())) {
+            if (StringUtils.isBlank(Secret.toString(whiteSourceStep.getJobApiToken()))) {
                 logger.println(Constants.INVALID_API_TOKEN);
                 return null;
             }
