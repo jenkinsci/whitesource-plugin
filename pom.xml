@@ -197,6 +197,11 @@
             <version>2.7</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.10.8</version>
+        </dependency>
+        <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>whitesource-fs-agent</artifactId>
             <version>18.12.1</version>
@@ -274,6 +279,10 @@
                     <groupId>org.simpleframework</groupId>
                     <artifactId>simple-xml</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.apache.ant</groupId>
+                    <artifactId>ant</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -307,6 +316,17 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore</artifactId>
             <version>4.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.14</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
