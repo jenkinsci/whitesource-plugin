@@ -187,6 +187,11 @@
             <version>1.26</version>
         </dependency>
         <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http2</artifactId>
+            <version>5.0.0.Alpha2</version>
+        </dependency>
+        <dependency>
             <groupId>org.whitesource</groupId>
             <artifactId>whitesource-fs-agent</artifactId>
             <version>18.12.1</version>
@@ -255,6 +260,10 @@
                 <exclusion>
                     <groupId>org.yaml</groupId>
                     <artifactId>snakeyaml</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-http2</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
