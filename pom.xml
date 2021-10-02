@@ -88,7 +88,6 @@
     </properties>
 
     <dependencies>
-        
         <!-- https://mvnrepository.com/artifact/org.jenkins-ci.plugins.workflow/workflow-aggregator -->
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
