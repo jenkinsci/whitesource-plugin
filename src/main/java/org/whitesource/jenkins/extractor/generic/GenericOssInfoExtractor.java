@@ -25,8 +25,8 @@ import java.util.List;
  */
 public class GenericOssInfoExtractor extends BaseOssInfoExtractor {
 
-    public static final List<String> DEFAULT_SCAN_EXTENSIONS =  Arrays.asList("jar", "war", "ear", "par", "rar",
-            "dll", "exe", "ko", "so", "msi", "zip", "tar", "tar.gz", "swc", "swf");
+    public static final List<String> DEFAULT_SCAN_EXTENSIONS =  java.util.Collections.unmodifiableList(Arrays.asList("jar", "war", "ear", "par", "rar",
+            "dll", "exe", "ko", "so", "msi", "zip", "tar", "tar.gz", "swc", "swf"));
 
 
     /* --- Members --- */
