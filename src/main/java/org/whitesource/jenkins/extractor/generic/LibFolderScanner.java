@@ -107,7 +107,7 @@ public class LibFolderScanner extends MasterToSlaveFileCallable<Collection<Remot
 	}
 
 	private void calculateHashes(File file, RemoteDependency info) {
-		if (file.getName().toLowerCase().matches(JAVA_SCRIPT_REGEX)) {
+		if (file.getName().toLowerCase(Locale.getDefault()).matches(JAVA_SCRIPT_REGEX)) {
 			Map<ChecksumType, String> javaScriptChecksums = new HashMap<>();
 			try {
 				javaScriptChecksums = new HashCalculator().calculateJavaScriptHashes(file);
