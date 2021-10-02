@@ -155,12 +155,10 @@ public final class WssUtils {
         Map<String, String> params = new HashMap<String, String>();
 
         List<String> kvps = splitParameters(paramList);
-        if (kvps != null) {
-            for (String kvp : kvps) {
-                String[] split = KEY_VALUE_SPLIT_PATTERN.split(kvp);
-                if (split.length == 2) {
-                    params.put(split[0], split[1]);
-                }
+        for (String kvp : kvps) {
+            String[] split = KEY_VALUE_SPLIT_PATTERN.split(kvp);
+            if (split.length == 2) {
+                params.put(split[0], split[1]);
             }
         }
 
