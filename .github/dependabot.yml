@@ -1,0 +1,14 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  target-branch: master
+  reviewers:
+  - anna.rozin@whitesourcesoftware.com
+  - sami.salami@whitesourcesoftware.com
+  - ramakrishna.sharvirala@gmail.com
+  labels:
+  - skip-changelog
