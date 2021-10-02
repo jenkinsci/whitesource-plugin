@@ -29,7 +29,7 @@
 
     <name>White Source Jenkins plugin</name>
     <description>White Source external update agent for Jenkins CI</description>
-    <url>https://wiki.jenkins-ci.org/display/JENKINS/Whitesource+Plugin/</url>
+    <url>https://plugins.jenkins.io/whitesource/</url>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -85,7 +85,10 @@
         <agent.version>2.9.5</agent.version>
         <skipTests>true</skipTests>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+        <spotbugs.effort>Max</spotbugs.effort>
+        <spotbugs.failOnError>true</spotbugs.failOnError>
+        <spotbugs.threshold>Low</spotbugs.threshold>
+      </properties>
 
     <dependencies>
         
