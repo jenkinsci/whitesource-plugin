@@ -24,7 +24,7 @@
     </parent>
 
     <artifactId>whitesource</artifactId>
-    <version>21.2.1-SNAPSHOT</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
 
     <name>White Source Jenkins plugin</name>
@@ -38,10 +38,10 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:git:https://github.com/jenkinsci/whitesource-plugin.git</connection>
-        <developerConnection>scm:git:https://github.com/jenkinsci/whitesource-plugin.git</developerConnection>
-        <url>http://github.com/jenkinsci/whitesource-plugin</url>
-        <tag>HEAD</tag>
+        <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
+        <developerConnection>scm:git:https://github.com/${gitHubRepo}.git</developerConnection>
+        <url>http://github.com/${gitHubRepo}</url>
+        <tag>${scmTag}</tag>
     </scm>
     <organization>
         <name>White Source</name>
@@ -76,6 +76,9 @@
     </developers>
 
     <properties>
+        <revision>21.2.1</revision>
+        <changelist>-SNAPSHOT</changelist>
+        <gitHubRepo>jenkinsci/whitesource-plugin</gitHubRepo>
         <!-- Minimal Jenkins version (2.14.0 ) required by for pipeline job -->
         <jenkins.version>2.289.3</jenkins.version>
         <!--<jenkins.version>2.14</jenkins.version>-->
